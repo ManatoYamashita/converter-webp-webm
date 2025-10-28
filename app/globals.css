@@ -7,11 +7,7 @@
 }
 
 body {
-  @apply min-h-screen bg-gradient-to-b from-brand-100 via-white to-brand-50 text-slate-800 antialiased;
-}
-
-main {
-  @apply py-10;
+  @apply min-h-screen bg-slate-100 text-slate-800 antialiased;
 }
 
 *::-webkit-scrollbar {

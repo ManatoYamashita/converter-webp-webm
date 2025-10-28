@@ -6,7 +6,7 @@ Next.js 15 における Turbopack のサポート状況と制限事項をまと�
 
 ## 現在のサポート状況（Next.js 15.0.0-canary.57）
 
-### 開発モード: ✅ サポート済み
+### 開発モード: ✅ サポート済み（条件付き）
 
 ```bash
 npm run dev  # next dev --turbo
@@ -15,6 +15,18 @@ npm run dev  # next dev --turbo
 - `--turbo` フラグで Turbopack を有効化
 - Hot Module Replacement (HMR) が高速化
 - 安定版として推奨されている
+
+**⚠️ 重要な制限事項:**
+
+Turbopack は以下の Next.js 実験的機能と**互換性がありません**:
+
+- `experimental.typedRoutes` - 型安全なルーティング機能
+- その他一部の実験的機能（[公式ドキュメント](https://nextjs.link/with-turbopack)を参照）
+
+本プロジェクトでは `typedRoutes` を無効化してTurbopackを優先しています。理由:
+- ルーティングがシンプル（メインページ + 1 API ルートのみ）
+- `typedRoutes` の恩恵がほぼゼロ
+- 開発速度向上の方が価値が高い
 
 ### 本番ビルド: ❌ 未サポート
 
@@ -33,6 +45,24 @@ npm run build  # next build (Webpack を使用)
 1. **段階的ロールアウト**: Vercel は Turbopack を段階的に展開している
 2. **本番ビルドの複雑性**: 本番ビルドには最適化、Tree Shaking、Code Splitting など複雑な処理が必要
 3. **canary の性質**: 実験的機能は開発モードから導入される
+
+### typedRoutes との非互換性
+
+Next.js 15.0.0-canary.57 の時点で、Turbopack は `experimental.typedRoutes` をサポートしていません。
+
+**typedRoutes とは:**
+- TypeScript でルーティングの型安全性を提供する実験的機能
+- `Link` や `router.push()` のパスが型チェックされる
+- 存在しないルートへの遷移をコンパイル時に検出できる
+
+**なぜ本プロジェクトで無効化したか:**
+- ルーティングが極めてシンプル（`/` と `/api/convert` のみ）
+- 動的なページ遷移がほとんど存在しない
+- Turbopack による開発速度向上の方が実用的価値が高い
+
+**将来の展望:**
+- Turbopack が typedRoutes をサポートする可能性あり
+- その際は `next.config.mjs` で再度有効化を検討
 
 ### Webpack との比較
 

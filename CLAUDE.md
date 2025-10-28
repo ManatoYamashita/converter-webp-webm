@@ -59,7 +59,8 @@ No automated tests exist. Before creating a PR, verify:
 - **`lib/i18n.ts`**: Translation strings for JA/EN/KO locales. Keys map to UI messages (errors, labels, buttons).
 
 ### Configuration
-- **`next.config.mjs`**: Enables `typedRoutes` and `optimizePackageImports` for SortableJS. ESLint runs on `app`, `components`, `lib`.
+
+- **`next.config.mjs`**: Enables `optimizePackageImports` for SortableJS. ESLint runs on `app`, `components`, `lib`. Note: `typedRoutes` is disabled due to Turbopack incompatibility.
 - **`tsconfig.json`**: Strict TypeScript with `@/*` path alias pointing to root.
 - **`tailwind.config.ts`**: Defines `brand` colors (blue/green/yellow/red) used throughout UI.
 
@@ -145,6 +146,7 @@ npm run start
 ### Known Issues
 
 - **Turbopack Build Support**: Next.js 15.0.0-canary.57 does NOT support `next build --turbo`. Production builds use Webpack. Only `next dev --turbo` is supported for development.
+- **Turbopack and typedRoutes**: Turbopack is incompatible with `experimental.typedRoutes`. This project disables `typedRoutes` to use Turbopack for faster development. See `docs/dev/turbopack-support.md` for details.
 - **canary Releases**: Breaking changes may occur. Pin versions in `package.json` if stability is critical.
 
 ## Documentation & Knowledge Base

@@ -257,222 +257,262 @@ export default function HomePage() {
       } else {
         setFeedback({ tone: "error", text: t.conversion_error });
       }
-    } finally {
-      setIsConverting(false);
-      setProgress(null);
-    }
+  } finally {
+    setIsConverting(false);
+    setProgress(null);
+  }
   };
 
+  const progressPercent =
+    progress && progress.total > 0
+      ? Math.min(100, Math.round((progress.current / progress.total) * 100))
+      : 0;
+
   return (
-    <div className="flex min-h-screen w-full items-start justify-center px-4 pb-16">
-      <div className="relative mt-12 flex w-full max-w-[1280px] flex-col gap-8 rounded-3xl border border-white/70 bg-white/95 p-10 shadow-surface backdrop-blur-xl">
-        <header className="flex flex-col items-center gap-6 text-center">
-          <h1 className="text-3xl font-extrabold tracking-tight text-brand-700 md:text-4xl">
-            {t.title}
-          </h1>
-          <div className="flex flex-wrap justify-center gap-3">
-            {localeOptions.map((option) => (
-              <button
-                key={option.code}
-                type="button"
-                onClick={() => setLocale(option.code)}
-                className={clsx(
-                  "flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold transition",
-                  locale === option.code
-                    ? "border-transparent bg-gradient-to-r from-brand-500 to-brand-400 text-white shadow-lg"
-                    : "border-brand-100 bg-brand-50/80 text-slate-600 hover:border-brand-200 hover:bg-white"
-                )}
+    <div className="flex min-h-screen items-center justify-center bg-slate-100 px-4 py-12">
+      <div className="w-full max-w-3xl rounded-3xl border border-slate-200 bg-white shadow-[0_24px_48px_rgba(15,23,42,0.12)]">
+        <div className="flex flex-col gap-8 p-6 sm:p-10">
+          <header className="flex flex-col items-center text-center">
+            <span className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-brand-500">
+              <svg
+                aria-hidden="true"
+                className="h-6 w-6"
+                fill="none"
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="1.75"
+                viewBox="0 0 24 24"
               >
-                <span>{option.emoji}</span>
-                {option.label}
-              </button>
-            ))}
-          </div>
-        </header>
-
-        <main>
-          <form className="flex flex-col gap-8" onSubmit={handleSubmit}>
-            <div className="grid gap-6 md:grid-cols-[2fr,3fr]">
-              <div className="flex flex-col gap-6">
-                <label className="flex flex-col gap-2 text-left">
-                  <span className="text-sm font-semibold text-slate-600">{t.filename_label}</span>
-                  <input
-                    value={baseName}
-                    onChange={(event) => setBaseName(event.target.value)}
-                    placeholder={t.filename_placeholder}
-                    className="w-full rounded-xl border-2 border-brand-100 bg-brand-50/60 px-4 py-3 text-base font-medium text-slate-800 outline-none transition focus:border-brand-400 focus:bg-white focus:shadow-lg"
-                  />
-                </label>
-
-                <label
-                  ref={dropRef}
-                  htmlFor="fileInput"
-                  onDragOver={(event) => {
-                    event.preventDefault();
-                    if (dropRef.current) {
-                      dropRef.current.dataset.dropping = "true";
-                    }
-                  }}
-                  onDragLeave={() => {
-                    if (dropRef.current) {
-                      delete dropRef.current.dataset.dropping;
-                    }
-                  }}
-                  onDrop={(event) => {
-                    event.preventDefault();
-                    if (dropRef.current) {
-                      delete dropRef.current.dataset.dropping;
-                    }
-                    handleFilesAdded(event.dataTransfer.files);
-                  }}
+                <path d="M7 17h10a4 4 0 0 0 .54-7.97 5 5 0 0 0-9.82-1.5A3.5 3.5 0 0 0 7 17Zm5-8v10" />
+                <path d="m9 13 3 3 3-3" />
+              </svg>
+            </span>
+            <h1 className="mt-4 text-2xl font-semibold text-slate-900 sm:text-3xl">{t.title}</h1>
+            <p className="mt-2 text-sm text-slate-500">{t.upload_label}</p>
+            <div className="mt-6 flex flex-wrap justify-center gap-2">
+              {localeOptions.map((option) => (
+                <button
+                  key={option.code}
+                  type="button"
+                  onClick={() => setLocale(option.code)}
                   className={clsx(
-                    "flex flex-col items-center justify-center gap-4 rounded-2xl border-2 border-dashed border-brand-200 bg-brand-50/60 px-6 py-10 text-center transition",
-                    dropRef.current?.dataset.dropping
-                      ? "border-brand-500 bg-brand-100/80"
-                      : "hover:border-brand-400 hover:bg-brand-100/60"
+                    "flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm font-medium transition",
+                    locale === option.code
+                      ? "border-transparent bg-brand-500 text-white shadow"
+                      : "border-slate-200 bg-white text-slate-500 hover:border-brand-200 hover:text-slate-700"
                   )}
                 >
-                  <span className="text-base font-semibold text-slate-700">{t.upload_label}</span>
-                  <p className="text-sm text-slate-500">
-                    JPG / JPEG / PNG · {t.max}: {MAX_FILES}
-                  </p>
-                  <input
-                    ref={fileInputRef}
-                    id="fileInput"
-                    type="file"
-                    accept=".jpg,.jpeg,.png"
-                    multiple
-                    className="hidden"
-                    onChange={(event) => {
-                      if (event.target.files) {
-                        handleFilesAdded(event.target.files);
-                        event.target.value = "";
-                      }
-                    }}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="rounded-xl bg-gradient-to-r from-brand-500 to-brand-400 px-5 py-2 text-sm font-semibold text-white shadow-lg transition hover:from-brand-600 hover:to-brand-500"
-                  >
-                    {t.add_more}
-                  </button>
-                </label>
+                  <span>{option.emoji}</span>
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </header>
 
-                {feedback && (
-                  <p
-                    className={clsx(
-                      "rounded-xl px-4 py-3 text-sm font-semibold shadow-sm",
-                      feedback.tone === "success"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-red-100 text-red-700"
-                    )}
-                  >
-                    {feedback.text}
-                  </p>
+          <form className="flex flex-col gap-8" onSubmit={handleSubmit}>
+            <label className="flex flex-col gap-2 text-left">
+              <span className="text-sm font-semibold text-slate-600">{t.filename_label}</span>
+              <input
+                value={baseName}
+                onChange={(event) => setBaseName(event.target.value)}
+                placeholder={t.filename_placeholder}
+                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base font-medium text-slate-800 outline-none transition focus:border-brand-400 focus:shadow-[0_0_0_4px_rgba(33,150,243,0.12)]"
+              />
+            </label>
+
+            <label
+              ref={dropRef}
+              htmlFor="fileInput"
+              onDragOver={(event) => {
+                event.preventDefault();
+                if (dropRef.current) {
+                  dropRef.current.dataset.dropping = "true";
+                }
+              }}
+              onDragLeave={() => {
+                if (dropRef.current) {
+                  delete dropRef.current.dataset.dropping;
+                }
+              }}
+              onDrop={(event) => {
+                event.preventDefault();
+                if (dropRef.current) {
+                  delete dropRef.current.dataset.dropping;
+                }
+                handleFilesAdded(event.dataTransfer.files);
+              }}
+              className={clsx(
+                "relative flex min-h-[220px] flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-slate-300 bg-slate-50/70 p-8 text-center transition",
+                dropRef.current?.dataset.dropping
+                  ? "border-brand-400 bg-brand-50/80"
+                  : "hover:border-brand-400 hover:bg-white"
+              )}
+            >
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white text-brand-500 shadow-sm">
+                <svg
+                  aria-hidden="true"
+                  className="h-7 w-7"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="1.75"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M12 16V4" />
+                  <path d="m8 8 4-4 4 4" />
+                  <path d="M20 16.5a4 4 0 0 0-.9-7.9 5 5 0 0 0-9.7-1.1A3.5 3.5 0 0 0 4 10.5a3.5 3.5 0 0 0 1 6.9Z" />
+                </svg>
+              </div>
+              <div className="space-y-1">
+                <span className="block text-base font-semibold text-slate-700">
+                  {t.upload_label}
+                </span>
+                <p className="text-xs text-slate-500">
+                  JPG / JPEG / PNG · {t.max}: {MAX_FILES}
+                </p>
+              </div>
+              <input
+                ref={fileInputRef}
+                id="fileInput"
+                type="file"
+                accept=".jpg,.jpeg,.png"
+                multiple
+                className="hidden"
+                onChange={(event) => {
+                  if (event.target.files) {
+                    handleFilesAdded(event.target.files);
+                    event.target.value = "";
+                  }
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="rounded-full border border-brand-200 bg-white px-5 py-2 text-sm font-semibold text-brand-600 transition hover:border-brand-400 hover:bg-brand-50"
+              >
+                {t.add_more}
+              </button>
+            </label>
+
+            {feedback && (
+              <p
+                className={clsx(
+                  "rounded-2xl px-4 py-3 text-sm font-semibold",
+                  feedback.tone === "success"
+                    ? "bg-green-50 text-green-600"
+                    : "bg-red-50 text-red-600"
                 )}
+              >
+                {feedback.text}
+              </p>
+            )}
 
-                <footer className="text-xs font-medium text-slate-500">{t.footer_text}</footer>
+            {progress && (
+              <div className="space-y-2 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <div className="h-2 rounded-full bg-slate-200">
+                  <div
+                    className="h-2 rounded-full bg-brand-500 transition-all"
+                    style={{ width: `${progressPercent}%` }}
+                  />
+                </div>
+                <p className="text-xs font-medium text-slate-500">
+                  {t.converting} {progress.current}/{progress.total}
+                </p>
+              </div>
+            )}
+
+            <section className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex flex-col items-start gap-1 sm:flex-row sm:items-center sm:gap-3">
+                  <span className="text-sm font-semibold text-slate-600">{t.selected_files}</span>
+                  <span className="text-xs text-slate-400">{t.drag_to_reorder}</span>
+                </div>
+                <span className="text-sm font-semibold text-brand-600">
+                  {items.length} {t.files_unit} / {t.max} {MAX_FILES}
+                </span>
               </div>
 
-              <div className="flex flex-col gap-4">
-                <div className="flex items-center justify-between rounded-xl border border-brand-100 bg-white px-4 py-3 shadow-sm">
-                  <span className="text-sm font-semibold text-slate-600">{t.selected_files}</span>
-                  <span className="text-sm font-semibold text-brand-600">
-                    {items.length} {t.files_unit} / {t.max} {MAX_FILES}
-                  </span>
-                </div>
-
-                {items.length > 0 ? (
-                  <div
-                    ref={galleryRef}
-                    className="grid max-h-[540px] grid-cols-1 gap-4 overflow-y-auto pr-1 md:grid-cols-2 xl:grid-cols-3"
-                  >
-                    {items.map((item, index) => (
-                      <div
-                        key={item.id}
-                        data-id={item.id}
-                        className="group relative flex flex-col overflow-hidden rounded-2xl border border-brand-100 bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg"
-                      >
-                        <div className="relative">
-                          <img
-                            src={item.previewUrl}
-                            alt={item.file.name}
-                            className="h-32 w-full object-cover"
-                            draggable={false}
-                          />
-                          <span className="absolute left-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-brand-500 text-sm font-semibold text-white shadow">
-                            {index + 1}
-                          </span>
+              {items.length > 0 ? (
+                <div
+                  ref={galleryRef}
+                  className="flex max-h-80 flex-col gap-3 overflow-y-auto pr-1"
+                >
+                  {items.map((item, index) => (
+                    <div
+                      key={item.id}
+                      data-id={item.id}
+                      className="flex items-center gap-4 rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-sm transition hover:shadow-md"
+                    >
+                      <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-xl bg-slate-100">
+                        <img
+                          src={item.previewUrl}
+                          alt={item.file.name}
+                          className="h-full w-full object-cover"
+                          draggable={false}
+                        />
+                      </div>
+                      <div className="flex flex-1 flex-col gap-3">
+                        <div className="flex items-start justify-between gap-3">
+                          <p className="text-sm font-semibold text-slate-800">{item.file.name}</p>
                           <button
                             type="button"
                             onClick={() => handleRemove(item.id)}
                             disabled={isConverting}
-                            className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-red-500/90 text-lg text-white shadow transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-60"
+                            className="flex h-8 w-8 items-center justify-center rounded-full border border-transparent text-slate-400 transition hover:border-slate-200 hover:text-slate-600 disabled:cursor-not-allowed disabled:opacity-40"
                             aria-label={t.remove}
                           >
                             ×
                           </button>
                         </div>
-                        <div className="flex flex-1 flex-col gap-2 p-4">
-                          <p className="line-clamp-2 text-sm font-semibold text-slate-800">
-                            {item.file.name}
-                          </p>
-                          <div className="flex items-center justify-between text-xs text-slate-500">
-                            <span>{item.sizeLabel}</span>
+                        <div className="flex items-center justify-between text-xs text-slate-500">
+                          <span>{item.sizeLabel}</span>
+                          <span className="flex items-center gap-2">
+                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold text-slate-500">
+                              {index + 1}
+                            </span>
                             <button
                               type="button"
-                              className="js-drag-handle cursor-grab text-brand-500 transition hover:text-brand-600 active:cursor-grabbing"
+                              className="js-drag-handle flex items-center justify-center rounded-full border border-transparent px-3 py-1 text-xs font-semibold text-slate-400 transition hover:border-slate-200 hover:text-slate-600 active:cursor-grabbing disabled:cursor-not-allowed"
                               disabled={isConverting}
                               aria-label={t.drag_to_reorder}
                             >
-                              ⋮⋮
+                              <span aria-hidden="true">⋮⋮</span>
                             </button>
-                          </div>
+                          </span>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="flex h-full min-h-[320px] items-center justify-center rounded-2xl border border-dashed border-brand-100 bg-brand-50/40 text-sm text-slate-400">
-                    {t.no_file_selected}
-                  </div>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={!items.length || isConverting}
-                  className={clsx(
-                    "mt-4 w-full rounded-2xl bg-gradient-to-r from-brand-500 to-brand-400 px-6 py-4 text-lg font-bold text-white shadow-lg transition",
-                    !items.length || isConverting
-                      ? "cursor-not-allowed opacity-60"
-                      : "hover:from-brand-600 hover:to-brand-500"
-                  )}
-                >
-                  {isConverting
-                    ? `${t.converting}${progress ? ` (${progress.current}/${progress.total})` : ""}`
-                    : t.convert_button}
-                </button>
-
-                {progress && (
-                  <div className="mt-2">
-                    <div className="h-2 rounded-full bg-brand-100">
-                      <div
-                        className="h-2 rounded-full bg-brand-500 transition-all"
-                        style={{
-                          width: `${Math.round((progress.current / progress.total) * 100)}%`,
-                        }}
-                      />
                     </div>
-                    <p className="mt-2 text-xs font-medium text-slate-500">
-                      {t.converting} {progress.current}/{progress.total}
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex min-h-[160px] items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 text-sm text-slate-400">
+                  {t.no_file_selected}
+                </div>
+              )}
+            </section>
+
+            <button
+              type="submit"
+              disabled={!items.length || isConverting}
+              className={clsx(
+                "w-full rounded-full bg-brand-500 px-6 py-4 text-lg font-semibold text-white shadow-lg transition",
+                !items.length || isConverting
+                  ? "cursor-not-allowed opacity-60"
+                  : "hover:bg-brand-600 hover:shadow-xl"
+              )}
+            >
+              {isConverting
+                ? `${t.converting}${progress ? ` (${progress.current}/${progress.total})` : ""}`
+                : t.convert_button}
+            </button>
+
+            <footer className="text-center text-xs font-medium text-slate-400">
+              {t.footer_text}
+            </footer>
           </form>
-        </main>
+        </div>
       </div>
     </div>
   );
