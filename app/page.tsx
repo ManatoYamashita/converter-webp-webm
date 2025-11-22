@@ -5,6 +5,8 @@ import Sortable, { SortableEvent } from "sortablejs";
 import clsx from "clsx";
 import { ALLOWED_EXTENSIONS, MAX_FILES, sanitizeFilename } from "@/lib/sanitizeFilename";
 
+const SITE_URL = "https://webplyzer.app";
+
 type FileItem = {
   id: string;
   file: File;
@@ -79,6 +81,42 @@ export default function HomePage() {
   const [progress, setProgress] = useState<{ current: number; total: number } | null>(null);
   const [isDropActive, setIsDropActive] = useState(false);
   const [isUploaderVisible, setIsUploaderVisible] = useState(true);
+  const structuredData = [
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      name: "Webplyzer",
+      url: SITE_URL,
+      description:
+        "Convert JPG, JPEG, PNG, SVG, HEIC images to WebP with drag-and-drop, reordering, and sequential naming.",
+      potentialAction: {
+        "@type": "Action",
+        name: "Convert images to WebP",
+        target: `${SITE_URL}/?action=convert`,
+      },
+      inLanguage: "en",
+      publisher: {
+        "@type": "Organization",
+        name: "Webplyzer",
+        url: SITE_URL,
+      },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      name: "Webplyzer",
+      applicationCategory: "MultimediaApplication",
+      operatingSystem: "Any",
+      offers: {
+        "@type": "Offer",
+        price: "0",
+        priceCurrency: "USD",
+      },
+      url: SITE_URL,
+      description:
+        "Batch convert images to WebP, maintain order, and export as ZIP for web performance optimization.",
+    },
+  ];
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const dropRef = useRef<HTMLLabelElement | null>(null);
@@ -295,11 +333,15 @@ export default function HomePage() {
     <div
       className={clsx(
         "flex min-h-screen items-center justify-center bg-slate-100 dark:bg-dark-bg-primary px-4 py-12",
-        hasItems && "pb-32"
+    hasItems && "pb-32"
       )}
     >
       <div className="relative w-full max-w-3xl rounded-3xl border border-slate-200 dark:border-dark-border-DEFAULT bg-white dark:bg-dark-bg-secondary shadow-[0_24px_48px_rgba(15,23,42,0.12)] dark:shadow-[0_24px_48px_rgba(0,0,0,0.4)]">
         <div className="flex flex-col gap-8 p-6 sm:p-10">
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+          />
           <header className="flex flex-col items-center text-center">
             <span className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-dark-bg-tertiary text-brand-500 dark:text-brand-400">
               <svg

@@ -12,13 +12,15 @@ docs/
 │  └─ spec.md              ... プロダクト要件・システム仕様
 └─ dev/
    ├─ branch.md            ... ブランチ戦略・レビュー手順
-   └─ turbopack-support.md ... Turbopack サポート状況と移行ガイド
+   ├─ turbopack-support.md ... Turbopack サポート状況と移行ガイド
+   └─ next16-upgrade.md    ... Next.js 16 アップグレードサマリー
 ```
 
 ## 各ドキュメントの概要
-- `docs/specs/spec.md`: Next.js 15 + Node Runtime 構成、変換 API の挙動、制約値（ファイル上限や品質）を記載。
+- `docs/specs/spec.md`: Next.js 16 + Node Runtime 構成、変換 API の挙動、制約値（ファイル上限や品質）を記載。
 - `docs/dev/branch.md`: `main` ブランチ保護方針、ブランチ命名、コミット/PR テンプレートを定義。
-- `docs/dev/turbopack-support.md`: Next.js 15 における Turbopack のサポート状況と本番ビルドへの移行ガイド。
+- `docs/dev/turbopack-support.md`: Turbopack のサポート状況と本番ビルドへの移行ガイド。
+- `docs/dev/next16-upgrade.md`: Next.js 16 および React 19 へのアップグレード詳細記録（2025-11-22実施）。
 - `../README.md`: セットアップ手順とユーザー向け機能概要。
 - `../AGENTS.md`: コントリビュータ向けガイドライン（プロジェクト構造、開発コマンド、レビュー要件）。
 - `../CLAUDE.md`: Claude Code 向け技術ガイド（アーキテクチャ、開発コマンド、AIエージェント向けヒント）。
