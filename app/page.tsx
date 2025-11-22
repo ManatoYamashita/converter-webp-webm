@@ -65,7 +65,7 @@ function resolveErrorMessage(code: string | undefined): string {
     case "no_valid_files":
       return "Conversion failed. Please try again.";
     case "unsupported_file":
-      return "Only JPG, JPEG, PNG, HEIC files are supported.";
+      return "Only JPG, JPEG, PNG, SVG, HEIC files are supported.";
     default:
       return "Conversion failed. Please try again.";
   }
@@ -187,7 +187,7 @@ export default function HomePage() {
     if (blockedByLimit) {
       setFeedback({ tone: "error", text: "Error: You can upload up to 25 files" });
     } else if (rejectedUnsupported) {
-      setFeedback({ tone: "error", text: "Error: Only JPG, JPEG, PNG, HEIC files are supported." });
+      setFeedback({ tone: "error", text: "Error: Only JPG, JPEG, PNG, SVG, HEIC files are supported." });
     } else {
       setFeedback(null);
     }
@@ -365,14 +365,14 @@ export default function HomePage() {
                   Select or drag & drop images
                 </span>
                 <p className="text-xs text-slate-500 dark:text-dark-text-secondary">
-                  JPG / JPEG / PNG / HEIC · max: {MAX_FILES}
+                  JPG / JPEG / PNG / SVG / HEIC · max: {MAX_FILES}
                 </p>
               </div>
               <input
                 ref={fileInputRef}
                 id="fileInput"
                 type="file"
-                accept=".jpg,.jpeg,.png,.heic,.heif"
+                accept=".jpg,.jpeg,.png,.svg,.heic,.heif"
                 multiple
                 className="hidden"
                 onChange={(event) => {
