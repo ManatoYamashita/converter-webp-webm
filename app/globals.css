@@ -20,6 +20,6 @@ body {
 }
 
 *::-webkit-scrollbar-thumb {
-  @apply bg-brand-200 dark:bg-dark-border-DEFAULT;
+  @apply bg-brand-200 dark:bg-dark-border;
   border-radius: 9999px;
 }
