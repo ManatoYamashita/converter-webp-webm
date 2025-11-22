@@ -1,235 +1,487 @@
-"use client"
+"use client";
 
-import { useEffect, useMemo, useState } from "react"
-import Link from "next/link"
-import Image from "next/image"
-import clsx from "clsx"
-import { type Locale, localeOptions, messages } from "@/lib/i18n"
+import { useEffect, useRef, useState } from "react";
+import Sortable, { SortableEvent } from "sortablejs";
+import clsx from "clsx";
+import { ALLOWED_EXTENSIONS, MAX_FILES, sanitizeFilename } from "@/lib/sanitizeFilename";
 
-type Tool = {
-  id: string
-  icon: string
-  iconImage?: string
-  title: string
-  description: string
-  href?: string
-  comingSoon?: boolean
+type FileItem = {
+  id: string;
+  file: File;
+  previewUrl: string;
+  sizeLabel: string;
+};
+
+type Feedback =
+  | {
+      tone: "success" | "error";
+      text: string;
+    }
+  | null;
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function reorderList<T>(list: T[], fromIndex: number, toIndex: number): T[] {
+  if (fromIndex === toIndex) return list;
+  const updated = [...list];
+  const [moved] = updated.splice(fromIndex, 1);
+  if (!moved) return list;
+  updated.splice(toIndex, 0, moved);
+  return updated;
+}
+
+async function downloadMultiple(
+  files: Array<{ blob: Blob; name: string }>,
+  zipName: string
+): Promise<void> {
+  const { default: JSZip } = await import("jszip");
+  const zip = new JSZip();
+  files.forEach(({ blob, name }) => zip.file(name, blob));
+  const blob = await zip.generateAsync({ type: "blob" });
+  downloadBlob(blob, zipName);
+}
+
+function downloadBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  document.body.removeChild(anchor);
+  URL.revokeObjectURL(url);
+}
+
+function resolveErrorMessage(code: string | undefined): string {
+  switch (code) {
+    case "no_file":
+      return "No files selected";
+    case "too_many_files":
+      return "Error: You can upload up to 25 files";
+    case "no_valid_files":
+      return "Conversion failed. Please try again.";
+    case "unsupported_file":
+      return "Only JPG, JPEG, PNG, HEIC files are supported.";
+    default:
+      return "Conversion failed. Please try again.";
+  }
 }
 
 export default function HomePage() {
-  const [locale, setLocale] = useState<Locale>("ja")
-  const [mounted, setMounted] = useState(false)
+  const [items, setItems] = useState<FileItem[]>([]);
+  const [baseName, setBaseName] = useState("image");
+  const [feedback, setFeedback] = useState<Feedback>(null);
+  const [isConverting, setIsConverting] = useState(false);
+  const [progress, setProgress] = useState<{ current: number; total: number } | null>(null);
 
-  const t = useMemo(() => messages[locale], [locale])
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const dropRef = useRef<HTMLLabelElement | null>(null);
+  const galleryRef = useRef<HTMLDivElement | null>(null);
+  const sortableRef = useRef<Sortable | null>(null);
+  const itemsRef = useRef<FileItem[]>([]);
 
   useEffect(() => {
-    setMounted(true)
-    const savedLocale = localStorage.getItem("locale") as Locale | null
-    if (savedLocale && ["ja", "en", "ko"].includes(savedLocale)) {
-      setLocale(savedLocale)
+    itemsRef.current = items;
+  }, [items]);
+
+  useEffect(() => {
+    const el = galleryRef.current;
+
+    if (!el || items.length === 0) {
+      sortableRef.current?.destroy();
+      sortableRef.current = null;
+      return;
     }
-  }, [])
 
-  const handleLocaleChange = (newLocale: Locale) => {
-    setLocale(newLocale)
-    localStorage.setItem("locale", newLocale)
+    sortableRef.current?.destroy();
+    sortableRef.current = Sortable.create(el, {
+      animation: 200,
+      handle: ".js-drag-handle",
+      easing: "cubic-bezier(0.4, 0, 0.2, 1)",
+      onEnd: (event: SortableEvent) => {
+        const { oldIndex, newIndex } = event;
+        if (
+          typeof oldIndex !== "number" ||
+          typeof newIndex !== "number" ||
+          oldIndex === newIndex
+        ) {
+          return;
+        }
+        setItems((prev) => reorderList(prev, oldIndex, newIndex));
+      },
+    });
+
+    return () => {
+      sortableRef.current?.destroy();
+      sortableRef.current = null;
+    };
+  }, [items.length]);
+
+  useEffect(() => {
+    return () => {
+      itemsRef.current.forEach((item) => URL.revokeObjectURL(item.previewUrl));
+      sortableRef.current?.destroy();
+    };
+  }, []);
+
+  const handleFilesAdded = (files: FileList | File[]) => {
+    const incoming = Array.from(files);
+    if (!incoming.length) return;
+
+    let blockedByLimit = false;
+    let rejectedUnsupported = false;
+
+    setItems((prev) => {
+      const next = [...prev];
+
+      for (const file of incoming) {
+        if (next.length >= MAX_FILES) {
+          blockedByLimit = true;
+          break;
+        }
+
+        const extension = file.name.split(".").pop()?.toLowerCase() ?? "";
+        if (!ALLOWED_EXTENSIONS.has(extension)) {
+          rejectedUnsupported = true;
+          continue;
+        }
+
+        const id = crypto.randomUUID();
+        const previewUrl = URL.createObjectURL(file);
+
+        next.push({
+          id,
+          file,
+          previewUrl,
+          sizeLabel: formatFileSize(file.size),
+        });
+      }
+
+      return next;
+    });
+
+    if (blockedByLimit) {
+      setFeedback({ tone: "error", text: "Error: You can upload up to 25 files" });
+    } else if (rejectedUnsupported) {
+      setFeedback({ tone: "error", text: "Error: Only JPG, JPEG, PNG, HEIC files are supported." });
+    } else {
+      setFeedback(null);
+    }
+  };
+
+  const handleRemove = (id: string) => {
+    setItems((prev) => {
+      const removed = prev.find((item) => item.id === id);
+      if (removed) {
+        URL.revokeObjectURL(removed.previewUrl);
+      }
+      return prev.filter((item) => item.id !== id);
+    });
+    setFeedback({ tone: "success", text: "File removed" });
+  };
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!items.length) {
+      setFeedback({ tone: "error", text: "No files selected" });
+      return;
+    }
+
+    const safeBaseName = sanitizeFilename(baseName);
+    setIsConverting(true);
+    setProgress({ current: 0, total: items.length });
+    setFeedback(null);
+
+    try {
+      const converted: Array<{ blob: Blob; name: string }> = [];
+
+      for (let index = 0; index < items.length; index += 1) {
+        setProgress({ current: index + 1, total: items.length });
+        const current = items[index];
+        const formData = new FormData();
+        formData.append("base_name", safeBaseName);
+        formData.append("file_index", (index + 1).toString());
+        formData.append("files", current.file, current.file.name);
+
+        const response = await fetch("/api/convert", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!response.ok) {
+          const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+          const message = resolveErrorMessage(payload?.error);
+          throw new Error(message);
+        }
+
+        const blob = await response.blob();
+        converted.push({
+          blob,
+          name: `${safeBaseName}_${index + 1}.webp`,
+        });
+      }
+
+      if (converted.length === 1) {
+        downloadBlob(converted[0].blob, converted[0].name);
+      } else {
+        await downloadMultiple(converted, `${safeBaseName}_webp.zip`);
+      }
+
+      setFeedback({ tone: "success", text: "Conversion completed successfully." });
+      setItems((prev) => {
+        prev.forEach((item) => URL.revokeObjectURL(item.previewUrl));
+        return [];
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        setFeedback({ tone: "error", text: error.message });
+      } else {
+        setFeedback({ tone: "error", text: "Conversion failed. Please try again." });
+      }
+  } finally {
+    setIsConverting(false);
+    setProgress(null);
   }
+  };
 
-  const tools: Tool[] = [
-    {
-      id: "webp-converter",
-      icon: "🖼️",
-      iconImage: "/Webp.png",
-      title: t.image_compress_title,
-      description: t.image_compress_desc,
-      href: "/converter",
-    },
-    {
-      id: "pdf-compress",
-      icon: "📄",
-      iconImage: "/pdf.png",
-      title: t.pdf_compress_title,
-      description: t.pdf_compress_desc,
-      comingSoon: true,
-    },
-    {
-      id: "video-compress",
-      icon: "🎥",
-      iconImage: "/video.png",
-      title: t.video_compress_title,
-      description: t.video_compress_desc,
-      comingSoon: true,
-    },
-  ]
+  const progressPercent =
+    progress && progress.total > 0
+      ? Math.min(100, Math.round((progress.current / progress.total) * 100))
+      : 0;
 
   return (
-    <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden px-4 py-16 md:py-20">
-      <div className="fixed inset-0 -z-10 bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50" />
-      <div className="fixed inset-0 -z-10 bg-gradient-to-tr from-yellow-100/40 via-amber-100/30 to-orange-100/40" />
-      <div className="fixed inset-0 -z-10 bg-[radial-gradient(circle_at_30%_20%,_rgba(251,191,36,0.15)_0%,_transparent_50%)]" />
-      <div className="fixed inset-0 -z-10 bg-[radial-gradient(circle_at_70%_80%,_rgba(249,115,22,0.12)_0%,_transparent_50%)]" />
+    <div className="flex min-h-screen items-center justify-center bg-slate-100 px-4 py-12">
+      <div className="w-full max-w-3xl rounded-3xl border border-slate-200 bg-white shadow-[0_24px_48px_rgba(15,23,42,0.12)]">
+        <div className="flex flex-col gap-8 p-6 sm:p-10">
+          <header className="flex flex-col items-center text-center">
+            <span className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-brand-500">
+              <svg
+                aria-hidden="true"
+                className="h-6 w-6"
+                fill="none"
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="1.75"
+                viewBox="0 0 24 24"
+              >
+                <path d="M7 17h10a4 4 0 0 0 .54-7.97 5 5 0 0 0-9.82-1.5A3.5 3.5 0 0 0 7 17Zm5-8v10" />
+                <path d="m9 13 3 3 3-3" />
+              </svg>
+            </span>
+            <h1 className="mt-4 text-2xl font-semibold text-slate-900 sm:text-3xl">Webplyzer - Batch WebP Converter</h1>
+            <p className="mt-2 text-sm text-slate-500">Convert your images to WebP format</p>
+          </header>
 
-      <div className="liquid-blob fixed left-[10%] top-[15%] -z-10 h-[500px] w-[500px] bg-gradient-to-br from-yellow-300/30 via-amber-300/25 to-orange-300/20 blur-3xl" />
-      <div className="liquid-blob-slow fixed right-[15%] bottom-[20%] -z-10 h-[600px] w-[600px] bg-gradient-to-br from-orange-300/25 via-amber-300/30 to-yellow-300/20 blur-3xl" />
-      <div className="liquid-pulse fixed left-[50%] top-[50%] -z-10 h-[400px] w-[400px] -translate-x-1/2 -translate-y-1/2 bg-gradient-to-br from-amber-200/20 via-yellow-200/25 to-orange-200/20 blur-3xl" />
+          <form className="flex flex-col gap-8" onSubmit={handleSubmit}>
+            <label className="flex flex-col gap-2 text-left">
+              <span className="text-sm font-semibold text-slate-600">Base filename for converted images</span>
+              <input
+                value={baseName}
+                onChange={(event) => setBaseName(event.target.value)}
+                placeholder="e.g. product-image"
+                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base font-medium text-slate-800 outline-none transition focus:border-brand-400 focus:shadow-[0_0_0_4px_rgba(33,150,243,0.12)]"
+              />
+            </label>
 
-      <div
-        className="float-bubble fixed left-[20%] top-0 -z-10 h-32 w-32 rounded-full bg-gradient-to-br from-yellow-300/40 to-amber-300/30 blur-2xl"
-        style={{ animationDuration: "15s", animationDelay: "0s" }}
-      />
-      <div
-        className="float-bubble fixed left-[60%] top-0 -z-10 h-24 w-24 rounded-full bg-gradient-to-br from-orange-300/35 to-yellow-300/25 blur-2xl"
-        style={{ animationDuration: "20s", animationDelay: "3s" }}
-      />
-      <div
-        className="float-bubble fixed left-[80%] top-0 -z-10 h-28 w-28 rounded-full bg-gradient-to-br from-amber-300/30 to-orange-300/20 blur-2xl"
-        style={{ animationDuration: "18s", animationDelay: "6s" }}
-      />
-
-      <div
-        className={clsx(
-          "relative flex w-full max-w-7xl flex-col gap-16 transition-all duration-1000",
-          mounted ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0",
-        )}
-      >
-        <header className="flex flex-col items-center gap-8 text-center">
-          <div className="relative rounded-[3rem] border border-white/60 bg-white/40 px-12 py-10 shadow-[0_8px_32px_0_rgba(251,191,36,0.25)] backdrop-blur-2xl backdrop-saturate-150">
-            {/* Inner glow effect */}
-            <div className="pointer-events-none absolute inset-0 rounded-[3rem] shadow-[inset_0_2px_4px_0_rgba(255,255,255,0.9)]" />
-
-            {/* Shimmer effect overlay */}
-            <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[3rem]">
-              <div className="shimmer-effect absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent" />
-            </div>
-
-            <div className="group relative flex flex-col items-center gap-6">
-              <div className="flex items-center gap-4">
-                <div className="text-6xl transition-transform duration-500 group-hover:scale-110 group-hover:rotate-12 md:text-7xl">
-                  🎨
-                </div>
-                <h1 className="bg-gradient-to-br from-amber-900 via-orange-800 to-yellow-900 bg-clip-text text-5xl font-bold tracking-tight text-transparent md:text-7xl">
-                  {t.main_title}
-                </h1>
+            <label
+              ref={dropRef}
+              htmlFor="fileInput"
+              onDragOver={(event) => {
+                event.preventDefault();
+                if (dropRef.current) {
+                  dropRef.current.dataset.dropping = "true";
+                }
+              }}
+              onDragLeave={() => {
+                if (dropRef.current) {
+                  delete dropRef.current.dataset.dropping;
+                }
+              }}
+              onDrop={(event) => {
+                event.preventDefault();
+                if (dropRef.current) {
+                  delete dropRef.current.dataset.dropping;
+                }
+                handleFilesAdded(event.dataTransfer.files);
+              }}
+              className={clsx(
+                "relative flex min-h-[220px] flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-slate-300 bg-slate-50/70 p-8 text-center transition",
+                dropRef.current?.dataset.dropping
+                  ? "border-brand-400 bg-brand-50/80"
+                  : "hover:border-brand-400 hover:bg-white"
+              )}
+            >
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white text-brand-500 shadow-sm">
+                <svg
+                  aria-hidden="true"
+                  className="h-7 w-7"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="1.75"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M12 16V4" />
+                  <path d="m8 8 4-4 4 4" />
+                  <path d="M20 16.5a4 4 0 0 0-.9-7.9 5 5 0 0 0-9.7-1.1A3.5 3.5 0 0 0 4 10.5a3.5 3.5 0 0 0 1 6.9Z" />
+                </svg>
               </div>
-
-              {/* Subtitle */}
-              <p className="max-w-2xl text-balance text-lg font-semibold leading-relaxed text-amber-900/80 md:text-xl">
-                {t.main_subtitle}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap justify-center gap-3">
-            {localeOptions.map((option) => (
+              <div className="space-y-1">
+                <span className="block text-base font-semibold text-slate-700">
+                  Select or drag & drop images
+                </span>
+                <p className="text-xs text-slate-500">
+                  JPG / JPEG / PNG · max: {MAX_FILES}
+                </p>
+              </div>
+              <input
+                ref={fileInputRef}
+                id="fileInput"
+                type="file"
+                accept=".jpg,.jpeg,.png"
+                multiple
+                className="hidden"
+                onChange={(event) => {
+                  if (event.target.files) {
+                    handleFilesAdded(event.target.files);
+                    event.target.value = "";
+                  }
+                }}
+              />
               <button
-                key={option.code}
                 type="button"
-                onClick={() => handleLocaleChange(option.code)}
+                onClick={() => fileInputRef.current?.click()}
+                className="rounded-full border border-brand-200 bg-white px-5 py-2 text-sm font-semibold text-brand-600 transition hover:border-brand-400 hover:bg-brand-50"
+              >
+                Add more
+              </button>
+            </label>
+
+            {feedback && (
+              <p
                 className={clsx(
-                  "group relative flex items-center gap-2.5 overflow-hidden rounded-2xl border px-5 py-3 text-sm font-semibold transition-all duration-300 md:px-6 md:py-3.5",
-                  locale === option.code
-                    ? "border-amber-300/60 bg-gradient-to-br from-amber-500 via-orange-500 to-yellow-500 text-white shadow-[0_8px_24px_-4px_rgba(251,191,36,0.6)] scale-105 backdrop-blur-xl"
-                    : "border-white/80 bg-white/50 text-amber-900 shadow-sm backdrop-blur-xl hover:border-amber-300/80 hover:bg-white/70 hover:shadow-lg hover:scale-105",
+                  "rounded-2xl px-4 py-3 text-sm font-semibold",
+                  feedback.tone === "success"
+                    ? "bg-green-50 text-green-600"
+                    : "bg-red-50 text-red-600"
                 )}
               >
-                <div className="liquid-wave pointer-events-none absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                <span className="text-lg">{option.emoji}</span>
-                <span className="relative">{option.label}</span>
-              </button>
-            ))}
-          </div>
-        </header>
+                {feedback.text}
+              </p>
+            )}
 
-        <main className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 lg:gap-8">
-          {tools.map((tool, index) => {
-            const isLink = tool.href && !tool.comingSoon
-            const cardClasses = clsx(
-              "group relative flex flex-col gap-6 overflow-hidden rounded-[2.5rem] border border-white/70 bg-white/50 p-8 shadow-[0_8px_32px_-8px_rgba(251,191,36,0.3)] backdrop-blur-2xl backdrop-saturate-150 transition-all duration-500 md:p-10",
-              tool.comingSoon
-                ? "cursor-not-allowed opacity-60"
-                : "cursor-pointer hover:-translate-y-3 hover:shadow-[0_20px_48px_-8px_rgba(251,191,36,0.4)] hover:border-amber-300/70 hover:bg-white/60",
-              mounted && `animate-in fade-in slide-in-from-bottom-4 duration-700 [animation-delay:${index * 100}ms]`,
-            )
-
-            const cardContent = (
-              <>
-                <div className="pointer-events-none absolute inset-0 rounded-[2.5rem] shadow-[inset_0_2px_4px_0_rgba(255,255,255,0.95)]" />
-
-                <div className="pointer-events-none absolute inset-0 rounded-[2.5rem] bg-gradient-to-br from-yellow-100/0 via-amber-100/0 to-orange-100/0 opacity-0 transition-all duration-500 group-hover:from-yellow-100/40 group-hover:via-amber-100/30 group-hover:to-orange-100/40 group-hover:opacity-100" />
-
-                <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[2.5rem]">
-                  <div className="liquid-wave absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+            {progress && (
+              <div className="space-y-2 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <div className="h-2 rounded-full bg-slate-200">
+                  <div
+                    className="h-2 rounded-full bg-brand-500 transition-all"
+                    style={{ width: `${progressPercent}%` }}
+                  />
                 </div>
-
-                {/* Coming soon badge with liquid glass */}
-                {tool.comingSoon && (
-                  <div className="absolute right-5 top-5 rounded-full border border-white/60 bg-gradient-to-r from-amber-400 via-orange-400 to-orange-500 px-4 py-1.5 text-xs font-bold text-white shadow-[0_4px_16px_0_rgba(251,191,36,0.5)] backdrop-blur-xl">
-                    {t.coming_soon}
-                  </div>
-                )}
-
-                <div className="relative flex items-center justify-center">
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="liquid-pulse h-32 w-32 rounded-full bg-gradient-to-br from-yellow-200/60 via-amber-200/50 to-orange-200/60 opacity-0 blur-2xl transition-opacity duration-500 group-hover:opacity-100" />
-                  </div>
-                  <div className="relative transition-all duration-500 group-hover:scale-110 group-hover:rotate-6">
-                    {tool.iconImage ? (
-                      <Image
-                        src={tool.iconImage}
-                        alt={tool.title}
-                        width={180}
-                        height={180}
-                        className="h-40 w-40 md:h-44 md:w-44"
-                      />
-                    ) : (
-                      <div className="text-7xl md:text-8xl">{tool.icon}</div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Content */}
-                <div className="relative flex flex-col gap-3">
-                  <h3 className="text-balance text-2xl font-bold tracking-tight text-amber-950 md:text-3xl">
-                    {tool.title}
-                  </h3>
-                  <p className="text-pretty text-sm font-medium leading-relaxed text-amber-900/70 md:text-base">
-                    {tool.description}
-                  </p>
-                </div>
-
-                {!tool.comingSoon && (
-                  <div className="relative mt-auto pt-2">
-                    <div className="group/cta relative inline-flex items-center gap-2 overflow-hidden rounded-full border border-amber-300/60 bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-yellow-500/10 px-6 py-3 font-semibold text-amber-900 backdrop-blur-xl transition-all duration-300 group-hover:gap-4 group-hover:border-amber-400/80 group-hover:from-amber-500/20 group-hover:via-orange-500/20 group-hover:to-yellow-500/20 group-hover:shadow-[0_4px_16px_0_rgba(251,191,36,0.3)]">
-                      {/* Shimmer effect */}
-                      <div className="shimmer-effect pointer-events-none absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent opacity-0 transition-opacity duration-300 group-hover/cta:opacity-100" />
-                      <span className="relative text-sm md:text-base">
-                        {locale === "ja" ? "開始する" : locale === "ko" ? "시작하기" : "Get Started"}
-                      </span>
-                      <span className="relative text-xl transition-transform duration-300 group-hover:translate-x-1">
-                        →
-                      </span>
-                    </div>
-                  </div>
-                )}
-              </>
-            )
-
-            return isLink && tool.href ? (
-              <Link key={tool.id} href={tool.href} className={cardClasses}>
-                {cardContent}
-              </Link>
-            ) : (
-              <div key={tool.id} className={cardClasses}>
-                {cardContent}
+                <p className="text-xs font-medium text-slate-500">
+                  Converting {progress.current}/{progress.total}
+                </p>
               </div>
-            )
-          })}
-        </main>
+            )}
 
-        <footer className="rounded-2xl border border-white/60 bg-white/40 px-6 py-4 text-center text-sm font-medium text-amber-900/70 shadow-sm backdrop-blur-xl">
-          {t.footer_text}
-        </footer>
+            <section className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex flex-col items-start gap-1 sm:flex-row sm:items-center sm:gap-3">
+                  <span className="text-sm font-semibold text-slate-600">Selected files</span>
+                  <span className="text-xs text-slate-400">Drag to change the order</span>
+                </div>
+                <span className="text-sm font-semibold text-brand-600">
+                  {items.length} items / max {MAX_FILES}
+                </span>
+              </div>
+
+              {items.length > 0 ? (
+                <div
+                  ref={galleryRef}
+                  className="flex max-h-80 flex-col gap-3 overflow-y-auto pr-1"
+                >
+                  {items.map((item, index) => (
+                    <div
+                      key={item.id}
+                      data-id={item.id}
+                      className="flex items-center gap-4 rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-sm transition hover:shadow-md"
+                    >
+                      <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-xl bg-slate-100">
+                        <img
+                          src={item.previewUrl}
+                          alt={item.file.name}
+                          className="h-full w-full object-cover"
+                          draggable={false}
+                        />
+                      </div>
+                      <div className="flex flex-1 flex-col gap-3">
+                        <div className="flex items-start justify-between gap-3">
+                          <p className="text-sm font-semibold text-slate-800">{item.file.name}</p>
+                          <button
+                            type="button"
+                            onClick={() => handleRemove(item.id)}
+                            disabled={isConverting}
+                            className="flex h-8 w-8 items-center justify-center rounded-full border border-transparent text-slate-400 transition hover:border-slate-200 hover:text-slate-600 disabled:cursor-not-allowed disabled:opacity-40"
+                            aria-label="Remove"
+                          >
+                            ×
+                          </button>
+                        </div>
+                        <div className="flex items-center justify-between text-xs text-slate-500">
+                          <span>{item.sizeLabel}</span>
+                          <span className="flex items-center gap-2">
+                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold text-slate-500">
+                              {index + 1}
+                            </span>
+                            <button
+                              type="button"
+                              className="js-drag-handle flex items-center justify-center rounded-full border border-transparent px-3 py-1 text-xs font-semibold text-slate-400 transition hover:border-slate-200 hover:text-slate-600 active:cursor-grabbing disabled:cursor-not-allowed"
+                              disabled={isConverting}
+                              aria-label="Drag to change the order"
+                            >
+                              <span aria-hidden="true">⋮⋮</span>
+                            </button>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex min-h-[160px] items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 text-sm text-slate-400">
+                  No files selected
+                </div>
+              )}
+            </section>
+
+            <button
+              type="submit"
+              disabled={!items.length || isConverting}
+              className={clsx(
+                "w-full rounded-full bg-brand-500 px-6 py-4 text-lg font-semibold text-white shadow-lg transition",
+                !items.length || isConverting
+                  ? "cursor-not-allowed opacity-60"
+                  : "hover:bg-brand-600 hover:shadow-xl"
+              )}
+            >
+              {isConverting
+                ? `Converting${progress ? ` (${progress.current}/${progress.total})` : ""}`
+                : "Convert to WebP"}
+            </button>
+
+            <footer className="text-center text-xs font-medium text-slate-400">
+              © Webplyzer – Smart image optimization
+            </footer>
+          </form>
+        </div>
       </div>
     </div>
-  )
+  );
 }
