@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Sortable, { SortableEvent } from "sortablejs";
 import clsx from "clsx";
 import { ALLOWED_EXTENSIONS, MAX_FILES, sanitizeFilename } from "@/lib/sanitizeFilename";
-import { Locale, localeOptions, messages } from "@/lib/i18n";
 
 type FileItem = {
   id: string;
@@ -57,19 +56,18 @@ function downloadBlob(blob: Blob, filename: string) {
   URL.revokeObjectURL(url);
 }
 
-function resolveErrorMessage(code: string | undefined, locale: Locale): string {
-  const dict = messages[locale];
+function resolveErrorMessage(code: string | undefined): string {
   switch (code) {
     case "no_file":
-      return dict.no_file_selected;
+      return "No files selected";
     case "too_many_files":
-      return `${dict.error}: ${dict.max_25_files}`;
+      return "Error: You can upload up to 25 files";
     case "no_valid_files":
-      return dict.conversion_error;
+      return "Conversion failed. Please try again.";
     case "unsupported_file":
-      return dict.unsupported_file;
+      return "Only JPG, JPEG, PNG, HEIC files are supported.";
     default:
-      return dict.conversion_error;
+      return "Conversion failed. Please try again.";
   }
 }
 
@@ -79,24 +77,12 @@ export default function HomePage() {
   const [feedback, setFeedback] = useState<Feedback>(null);
   const [isConverting, setIsConverting] = useState(false);
   const [progress, setProgress] = useState<{ current: number; total: number } | null>(null);
-  const [locale, setLocale] = useState<Locale>("ja");
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const dropRef = useRef<HTMLLabelElement | null>(null);
   const galleryRef = useRef<HTMLDivElement | null>(null);
   const sortableRef = useRef<Sortable | null>(null);
   const itemsRef = useRef<FileItem[]>([]);
-
-  const t = useMemo(() => messages[locale], [locale]);
-
-  useEffect(() => {
-    const autoLocale = localeOptions.find((option) =>
-      navigator.language.toLowerCase().startsWith(option.code)
-    );
-    if (autoLocale) {
-      setLocale(autoLocale.code);
-    }
-  }, []);
 
   useEffect(() => {
     itemsRef.current = items;
@@ -179,9 +165,9 @@ export default function HomePage() {
     });
 
     if (blockedByLimit) {
-      setFeedback({ tone: "error", text: `${t.error}: ${t.max_25_files}` });
+      setFeedback({ tone: "error", text: "Error: You can upload up to 25 files" });
     } else if (rejectedUnsupported) {
-      setFeedback({ tone: "error", text: `${t.error}: ${t.unsupported_file}` });
+      setFeedback({ tone: "error", text: "Error: Only JPG, JPEG, PNG, HEIC files are supported." });
     } else {
       setFeedback(null);
     }
@@ -195,14 +181,14 @@ export default function HomePage() {
       }
       return prev.filter((item) => item.id !== id);
     });
-    setFeedback({ tone: "success", text: t.file_removed });
+    setFeedback({ tone: "success", text: "File removed" });
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!items.length) {
-      setFeedback({ tone: "error", text: t.no_file_selected });
+      setFeedback({ tone: "error", text: "No files selected" });
       return;
     }
 
@@ -229,7 +215,7 @@ export default function HomePage() {
 
         if (!response.ok) {
           const payload = (await response.json().catch(() => null)) as { error?: string } | null;
-          const message = resolveErrorMessage(payload?.error, locale);
+          const message = resolveErrorMessage(payload?.error);
           throw new Error(message);
         }
 
@@ -246,7 +232,7 @@ export default function HomePage() {
         await downloadMultiple(converted, `${safeBaseName}_webp.zip`);
       }
 
-      setFeedback({ tone: "success", text: t.success_message });
+      setFeedback({ tone: "success", text: "Conversion completed successfully." });
       setItems((prev) => {
         prev.forEach((item) => URL.revokeObjectURL(item.previewUrl));
         return [];
@@ -255,7 +241,7 @@ export default function HomePage() {
       if (error instanceof Error) {
         setFeedback({ tone: "error", text: error.message });
       } else {
-        setFeedback({ tone: "error", text: t.conversion_error });
+        setFeedback({ tone: "error", text: "Conversion failed. Please try again." });
       }
   } finally {
     setIsConverting(false);
@@ -288,35 +274,17 @@ export default function HomePage() {
                 <path d="m9 13 3 3 3-3" />
               </svg>
             </span>
-            <h1 className="mt-4 text-2xl font-semibold text-slate-900 sm:text-3xl">{t.title}</h1>
-            <p className="mt-2 text-sm text-slate-500">{t.upload_label}</p>
-            <div className="mt-6 flex flex-wrap justify-center gap-2">
-              {localeOptions.map((option) => (
-                <button
-                  key={option.code}
-                  type="button"
-                  onClick={() => setLocale(option.code)}
-                  className={clsx(
-                    "flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm font-medium transition",
-                    locale === option.code
-                      ? "border-transparent bg-brand-500 text-white shadow"
-                      : "border-slate-200 bg-white text-slate-500 hover:border-brand-200 hover:text-slate-700"
-                  )}
-                >
-                  <span>{option.emoji}</span>
-                  {option.label}
-                </button>
-              ))}
-            </div>
+            <h1 className="mt-4 text-2xl font-semibold text-slate-900 sm:text-3xl">Webplyzer - Batch WebP Converter</h1>
+            <p className="mt-2 text-sm text-slate-500">Convert your images to WebP format</p>
           </header>
 
           <form className="flex flex-col gap-8" onSubmit={handleSubmit}>
             <label className="flex flex-col gap-2 text-left">
-              <span className="text-sm font-semibold text-slate-600">{t.filename_label}</span>
+              <span className="text-sm font-semibold text-slate-600">Base filename for converted images</span>
               <input
                 value={baseName}
                 onChange={(event) => setBaseName(event.target.value)}
-                placeholder={t.filename_placeholder}
+                placeholder="e.g. product-image"
                 className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base font-medium text-slate-800 outline-none transition focus:border-brand-400 focus:shadow-[0_0_0_4px_rgba(33,150,243,0.12)]"
               />
             </label>
@@ -367,10 +335,10 @@ export default function HomePage() {
               </div>
               <div className="space-y-1">
                 <span className="block text-base font-semibold text-slate-700">
-                  {t.upload_label}
+                  Select or drag & drop images
                 </span>
                 <p className="text-xs text-slate-500">
-                  JPG / JPEG / PNG · {t.max}: {MAX_FILES}
+                  JPG / JPEG / PNG · max: {MAX_FILES}
                 </p>
               </div>
               <input
@@ -392,7 +360,7 @@ export default function HomePage() {
                 onClick={() => fileInputRef.current?.click()}
                 className="rounded-full border border-brand-200 bg-white px-5 py-2 text-sm font-semibold text-brand-600 transition hover:border-brand-400 hover:bg-brand-50"
               >
-                {t.add_more}
+                Add more
               </button>
             </label>
 
@@ -418,7 +386,7 @@ export default function HomePage() {
                   />
                 </div>
                 <p className="text-xs font-medium text-slate-500">
-                  {t.converting} {progress.current}/{progress.total}
+                  Converting {progress.current}/{progress.total}
                 </p>
               </div>
             )}
@@ -426,11 +394,11 @@ export default function HomePage() {
             <section className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex flex-col items-start gap-1 sm:flex-row sm:items-center sm:gap-3">
-                  <span className="text-sm font-semibold text-slate-600">{t.selected_files}</span>
-                  <span className="text-xs text-slate-400">{t.drag_to_reorder}</span>
+                  <span className="text-sm font-semibold text-slate-600">Selected files</span>
+                  <span className="text-xs text-slate-400">Drag to change the order</span>
                 </div>
                 <span className="text-sm font-semibold text-brand-600">
-                  {items.length} {t.files_unit} / {t.max} {MAX_FILES}
+                  {items.length} items / max {MAX_FILES}
                 </span>
               </div>
 
@@ -461,7 +429,7 @@ export default function HomePage() {
                             onClick={() => handleRemove(item.id)}
                             disabled={isConverting}
                             className="flex h-8 w-8 items-center justify-center rounded-full border border-transparent text-slate-400 transition hover:border-slate-200 hover:text-slate-600 disabled:cursor-not-allowed disabled:opacity-40"
-                            aria-label={t.remove}
+                            aria-label="Remove"
                           >
                             ×
                           </button>
@@ -476,7 +444,7 @@ export default function HomePage() {
                               type="button"
                               className="js-drag-handle flex items-center justify-center rounded-full border border-transparent px-3 py-1 text-xs font-semibold text-slate-400 transition hover:border-slate-200 hover:text-slate-600 active:cursor-grabbing disabled:cursor-not-allowed"
                               disabled={isConverting}
-                              aria-label={t.drag_to_reorder}
+                              aria-label="Drag to change the order"
                             >
                               <span aria-hidden="true">⋮⋮</span>
                             </button>
@@ -488,7 +456,7 @@ export default function HomePage() {
                 </div>
               ) : (
                 <div className="flex min-h-[160px] items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 text-sm text-slate-400">
-                  {t.no_file_selected}
+                  No files selected
                 </div>
               )}
             </section>
@@ -504,12 +472,12 @@ export default function HomePage() {
               )}
             >
               {isConverting
-                ? `${t.converting}${progress ? ` (${progress.current}/${progress.total})` : ""}`
-                : t.convert_button}
+                ? `Converting${progress ? ` (${progress.current}/${progress.total})` : ""}`
+                : "Convert to WebP"}
             </button>
 
             <footer className="text-center text-xs font-medium text-slate-400">
-              {t.footer_text}
+              © Webplyzer – Smart image optimization
             </footer>
           </form>
         </div>

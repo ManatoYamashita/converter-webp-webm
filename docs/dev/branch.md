@@ -1,8 +1,14 @@
 # Webplyzer ブランチ運用ガイド
 
 ## 基本ブランチ
-- `main`: 本番相当の安定ブランチ。保護設定により PR 経由のマージのみ許可。
+- `prod`: 本番相当の安定ブランチ。保護設定により PR 経由のマージのみ許可。
+- `main`: 前バージョンの保存用ブランチ。基本的に使用しない。
 - リリース専用ブランチは未運用。必要時に本ファイルへ追記する。
+
+## 重要な禁止事項
+- **`main` および `prod` への直接pushは厳禁**。保護設定により物理的にブロックされる。
+- すべての変更は作業ブランチを作成し、CI/CD を通じて PR を経由して `prod` にマージする。
+- 作業ブランチから `main` や `prod` への直接マージも禁止。必ず PR を作成すること。
 
 ## 作業ブランチ命名規則
 ```
@@ -12,42 +18,29 @@
 - 例: `feat/language-picker`, `fix/zip-order`, `refactor/upload-flow`
 
 ## 標準フロー
-1. 最新化: `git checkout main && git pull --ff-only origin main`
-2. ブランチ作成: `git checkout -b <type>/<topic>`
+**原則**: すべての変更は作業ブランチを作成し、CI/CD を通じて PR を経由して `prod` を更新する。
+
+1. 最新化: `git checkout prod && git pull --ff-only origin prod`
+2. ブランチ作成: `git checkout -b <type>/<topic>`（作業のたびに必ず新しいブランチを作成）
 3. 開発: `npm install`（初回のみ）→ `npm run dev`（Turbopack）で Next.js を起動しつつ実装
 4. 手動テスト（最低限）
    - 単一画像の WebP 変換が成功し、ダウンロードできる
    - 複数画像をドラッグで並べ替えてから変換し、ZIP 内の順序が UI と一致する
-   - 未対応拡張子（例: `.gif`）でエラー通知が表示される
-   - ロケール切替（日本語/英語/韓国語）が反映される
-5. 差分を `git add` → コミット → `git push`。PR 作成時はチェックリストを記載
+   - 変換後のファイル名が一貫性を持った連番になる
+5. 差分を `git add` → コミット → `git push`。作業ブランチ（`feature/**` など）に push すると CI/CD が自動実行され、チェックとPR が作成される。PR 作成時はチェックリストを記載
+6. PR レビュー → 承認 → `prod` へマージ（CI/CD を通じて自動化）
+
+## CI/CD と GitHub Actions
+- ランナー環境: `ubuntu-latest` / Node.js 20 / `npm ci` を使用。
+- `feature/**` への push で実行: Lint (`npm run lint`) → 型チェック（`npx tsc --noEmit`）→ Build（`npm run build`）。すべて成功すると `origin/prod` との差分サマリーとチェック結果を本文に含む `prod` 向けPRを自動生成または更新する。
+- 自動生成PRタイトル: `chore: sync <branch> to prod`。本文にソース/ベースブランチ、先行コミット数、Lint/Typecheck/Build結果、`git diff --stat origin/prod...HEAD` の概要を記載。
+- `prod` 更新時に実行: 本番ビルド（`npm run build`）→ サーバー起動（`next start --hostname 0.0.0.0 --port 3000`）→ `wait-on` で待機 → `@lhci/cli` で Lighthouse 推奨プリセットを1回実行し、`.lighthouseci` をアーティファクトとして保存。
+- PRマージ前にCI結果と自動PRのサマリーを必ず確認し、Lighthouseレポートも合わせてレビューすること。
 
 ## コミットメッセージ規約
-- フォーマット: `<type>: <summary>`（例: `feat: add drag handle animations`）
-- 本文が必要な場合は背景・実装・テスト結果を箇条書きで追記
-- 一貫性確保のため、複数コミットが必要な大規模変更でも prefix を揃える
-
-## プルリクエスト運用
-- タイトルはコミット同様 `<type>: <summary>`
-- 説明テンプレート例:
-  ```markdown
-  ## 概要
-  - 変更点1
-  - 変更点2
-
-  ## テスト
-  - [ ] npm run lint
-  - [ ] npm run build
-  - [ ] 単一画像変換を確認
-  - [ ] 複数画像+並べ替え -> ZIP 順序を確認
-  - [ ] 言語切替 (JA/EN/KO) を確認
-  ```
-- UI 更新時はスクリーンショット or 動画を添付。翻訳変更時は確認済みロケールを明記。
-
-## マージとクリーンアップ
-- レビュー承認後、`git pull --ff-only origin main` で最新化し `git rebase main` で履歴整理
-- `main` へマージ後はリモート・ローカルの作業ブランチを削除
-- Vercel での検証が必要な場合は `vercel dev` または Preview URL の結果を PR に記載
+- フォーマット: `<PREFIX>: <summary>`（例: `FEATURE: add drag handle animations`）
+- 本文が必要な場合は背景・実装・変更点・テスト結果などを箇条書きで追記
+- 一貫性確保のため、複数コミットが必要な大規模変更でも PREFIX を揃える
 
 ## 運用メモ
 - `sharp` 利用のため API ルートは Node runtime に固定。エッジ化の提案が出た場合は技術検証が必要。

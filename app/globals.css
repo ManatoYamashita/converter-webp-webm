@@ -3,11 +3,12 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: light;
+  color-scheme: light dark;
 }
 
 body {
   @apply min-h-screen bg-slate-100 text-slate-800 antialiased;
+  @apply dark:bg-dark-bg-primary dark:text-dark-text-primary;
 }
 
 *::-webkit-scrollbar {
@@ -15,10 +16,10 @@ body {
 }
 
 *::-webkit-scrollbar-track {
-  background-color: theme("colors.brand.50");
+  @apply bg-brand-50 dark:bg-dark-bg-tertiary;
 }
 
 *::-webkit-scrollbar-thumb {
-  background-color: theme("colors.brand.200");
+  @apply bg-brand-200 dark:bg-dark-border-DEFAULT;
   border-radius: 9999px;
 }
