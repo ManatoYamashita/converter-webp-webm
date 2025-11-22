@@ -255,11 +255,11 @@ export default function HomePage() {
       : 0;
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-100 px-4 py-12">
-      <div className="w-full max-w-3xl rounded-3xl border border-slate-200 bg-white shadow-[0_24px_48px_rgba(15,23,42,0.12)]">
+    <div className="flex min-h-screen items-center justify-center bg-slate-100 dark:bg-dark-bg-primary px-4 py-12">
+      <div className="w-full max-w-3xl rounded-3xl border border-slate-200 dark:border-dark-border-DEFAULT bg-white dark:bg-dark-bg-secondary shadow-[0_24px_48px_rgba(15,23,42,0.12)] dark:shadow-[0_24px_48px_rgba(0,0,0,0.4)]">
         <div className="flex flex-col gap-8 p-6 sm:p-10">
           <header className="flex flex-col items-center text-center">
-            <span className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-brand-500">
+            <span className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-dark-bg-tertiary text-brand-500 dark:text-brand-400">
               <svg
                 aria-hidden="true"
                 className="h-6 w-6"
@@ -274,18 +274,18 @@ export default function HomePage() {
                 <path d="m9 13 3 3 3-3" />
               </svg>
             </span>
-            <h1 className="mt-4 text-2xl font-semibold text-slate-900 sm:text-3xl">Webplyzer - Batch WebP Converter</h1>
-            <p className="mt-2 text-sm text-slate-500">Convert your images to WebP format</p>
+            <h1 className="mt-4 text-2xl font-semibold text-slate-900 dark:text-dark-text-primary sm:text-3xl">Webplyzer - Batch WebP Converter</h1>
+            <p className="mt-2 text-sm text-slate-500 dark:text-dark-text-secondary">Convert your images to WebP format</p>
           </header>
 
           <form className="flex flex-col gap-8" onSubmit={handleSubmit}>
             <label className="flex flex-col gap-2 text-left">
-              <span className="text-sm font-semibold text-slate-600">Base filename for converted images</span>
+              <span className="text-sm font-semibold text-slate-600 dark:text-dark-text-secondary">Base filename for converted images</span>
               <input
                 value={baseName}
                 onChange={(event) => setBaseName(event.target.value)}
                 placeholder="e.g. product-image"
-                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base font-medium text-slate-800 outline-none transition focus:border-brand-400 focus:shadow-[0_0_0_4px_rgba(33,150,243,0.12)]"
+                className="w-full rounded-2xl border border-slate-200 dark:border-dark-border-DEFAULT bg-white dark:bg-dark-bg-tertiary px-4 py-3 text-base font-medium text-slate-800 dark:text-dark-text-primary outline-none transition focus:border-brand-400 dark:focus:border-brand-500 focus:shadow-[0_0_0_4px_rgba(33,150,243,0.12)] dark:focus:shadow-[0_0_0_4px_rgba(33,150,243,0.2)] placeholder:text-slate-400 dark:placeholder:text-dark-text-muted"
               />
             </label>
 
@@ -311,13 +311,13 @@ export default function HomePage() {
                 handleFilesAdded(event.dataTransfer.files);
               }}
               className={clsx(
-                "relative flex min-h-[220px] flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-slate-300 bg-slate-50/70 p-8 text-center transition",
+                "relative flex min-h-[220px] flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-slate-300 dark:border-dark-border-DEFAULT bg-slate-50/70 dark:bg-dark-bg-tertiary/50 p-8 text-center transition",
                 dropRef.current?.dataset.dropping
-                  ? "border-brand-400 bg-brand-50/80"
-                  : "hover:border-brand-400 hover:bg-white"
+                  ? "border-brand-400 dark:border-brand-500 bg-brand-50/80 dark:bg-brand-900/20"
+                  : "hover:border-brand-400 dark:hover:border-brand-500 hover:bg-white dark:hover:bg-dark-bg-secondary"
               )}
             >
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white text-brand-500 shadow-sm">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white dark:bg-dark-bg-tertiary text-brand-500 dark:text-brand-400 shadow-sm dark:shadow-none">
                 <svg
                   aria-hidden="true"
                   className="h-7 w-7"
@@ -334,18 +334,18 @@ export default function HomePage() {
                 </svg>
               </div>
               <div className="space-y-1">
-                <span className="block text-base font-semibold text-slate-700">
+                <span className="block text-base font-semibold text-slate-700 dark:text-dark-text-primary">
                   Select or drag & drop images
                 </span>
-                <p className="text-xs text-slate-500">
-                  JPG / JPEG / PNG · max: {MAX_FILES}
+                <p className="text-xs text-slate-500 dark:text-dark-text-secondary">
+                  JPG / JPEG / PNG / HEIC · max: {MAX_FILES}
                 </p>
               </div>
               <input
                 ref={fileInputRef}
                 id="fileInput"
                 type="file"
-                accept=".jpg,.jpeg,.png"
+                accept=".jpg,.jpeg,.png,.heic,.heif"
                 multiple
                 className="hidden"
                 onChange={(event) => {
@@ -358,7 +358,7 @@ export default function HomePage() {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="rounded-full border border-brand-200 bg-white px-5 py-2 text-sm font-semibold text-brand-600 transition hover:border-brand-400 hover:bg-brand-50"
+                className="rounded-full border border-brand-200 dark:border-brand-600 bg-white dark:bg-dark-bg-tertiary px-5 py-2 text-sm font-semibold text-brand-600 dark:text-brand-400 transition hover:border-brand-400 dark:hover:border-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/20"
               >
                 Add more
               </button>
@@ -369,8 +369,8 @@ export default function HomePage() {
                 className={clsx(
                   "rounded-2xl px-4 py-3 text-sm font-semibold",
                   feedback.tone === "success"
-                    ? "bg-green-50 text-green-600"
-                    : "bg-red-50 text-red-600"
+                    ? "bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400"
+                    : "bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400"
                 )}
               >
                 {feedback.text}
@@ -378,14 +378,14 @@ export default function HomePage() {
             )}
 
             {progress && (
-              <div className="space-y-2 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <div className="h-2 rounded-full bg-slate-200">
+              <div className="space-y-2 rounded-2xl border border-slate-200 dark:border-dark-border-DEFAULT bg-slate-50 dark:bg-dark-bg-tertiary p-4">
+                <div className="h-2 rounded-full bg-slate-200 dark:bg-dark-border-DEFAULT">
                   <div
-                    className="h-2 rounded-full bg-brand-500 transition-all"
+                    className="h-2 rounded-full bg-brand-500 dark:bg-brand-400 transition-all"
                     style={{ width: `${progressPercent}%` }}
                   />
                 </div>
-                <p className="text-xs font-medium text-slate-500">
+                <p className="text-xs font-medium text-slate-500 dark:text-dark-text-secondary">
                   Converting {progress.current}/{progress.total}
                 </p>
               </div>
@@ -394,10 +394,10 @@ export default function HomePage() {
             <section className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex flex-col items-start gap-1 sm:flex-row sm:items-center sm:gap-3">
-                  <span className="text-sm font-semibold text-slate-600">Selected files</span>
-                  <span className="text-xs text-slate-400">Drag to change the order</span>
+                  <span className="text-sm font-semibold text-slate-600 dark:text-dark-text-secondary">Selected files</span>
+                  <span className="text-xs text-slate-400 dark:text-dark-text-muted">Drag to change the order</span>
                 </div>
-                <span className="text-sm font-semibold text-brand-600">
+                <span className="text-sm font-semibold text-brand-600 dark:text-brand-400">
                   {items.length} items / max {MAX_FILES}
                 </span>
               </div>
@@ -411,9 +411,9 @@ export default function HomePage() {
                     <div
                       key={item.id}
                       data-id={item.id}
-                      className="flex items-center gap-4 rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-sm transition hover:shadow-md"
+                      className="flex items-center gap-4 rounded-2xl border border-slate-200 dark:border-dark-border-DEFAULT bg-white/80 dark:bg-dark-bg-tertiary/80 p-4 shadow-sm dark:shadow-none transition hover:shadow-md dark:hover:bg-dark-bg-tertiary"
                     >
-                      <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-xl bg-slate-100">
+                      <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-xl bg-slate-100 dark:bg-dark-bg-primary">
                         <img
                           src={item.previewUrl}
                           alt={item.file.name}
@@ -423,26 +423,26 @@ export default function HomePage() {
                       </div>
                       <div className="flex flex-1 flex-col gap-3">
                         <div className="flex items-start justify-between gap-3">
-                          <p className="text-sm font-semibold text-slate-800">{item.file.name}</p>
+                          <p className="text-sm font-semibold text-slate-800 dark:text-dark-text-primary">{item.file.name}</p>
                           <button
                             type="button"
                             onClick={() => handleRemove(item.id)}
                             disabled={isConverting}
-                            className="flex h-8 w-8 items-center justify-center rounded-full border border-transparent text-slate-400 transition hover:border-slate-200 hover:text-slate-600 disabled:cursor-not-allowed disabled:opacity-40"
+                            className="flex h-8 w-8 items-center justify-center rounded-full border border-transparent text-slate-400 dark:text-dark-text-muted transition hover:border-slate-200 dark:hover:border-dark-border-DEFAULT hover:text-slate-600 dark:hover:text-dark-text-secondary disabled:cursor-not-allowed disabled:opacity-40"
                             aria-label="Remove"
                           >
                             ×
                           </button>
                         </div>
-                        <div className="flex items-center justify-between text-xs text-slate-500">
+                        <div className="flex items-center justify-between text-xs text-slate-500 dark:text-dark-text-secondary">
                           <span>{item.sizeLabel}</span>
                           <span className="flex items-center gap-2">
-                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold text-slate-500">
+                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-100 dark:bg-dark-bg-primary text-xs font-semibold text-slate-500 dark:text-dark-text-secondary">
                               {index + 1}
                             </span>
                             <button
                               type="button"
-                              className="js-drag-handle flex items-center justify-center rounded-full border border-transparent px-3 py-1 text-xs font-semibold text-slate-400 transition hover:border-slate-200 hover:text-slate-600 active:cursor-grabbing disabled:cursor-not-allowed"
+                              className="js-drag-handle flex items-center justify-center rounded-full border border-transparent px-3 py-1 text-xs font-semibold text-slate-400 dark:text-dark-text-muted transition hover:border-slate-200 dark:hover:border-dark-border-DEFAULT hover:text-slate-600 dark:hover:text-dark-text-secondary active:cursor-grabbing disabled:cursor-not-allowed"
                               disabled={isConverting}
                               aria-label="Drag to change the order"
                             >
@@ -455,7 +455,7 @@ export default function HomePage() {
                   ))}
                 </div>
               ) : (
-                <div className="flex min-h-[160px] items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 text-sm text-slate-400">
+                <div className="flex min-h-[160px] items-center justify-center rounded-2xl border border-dashed border-slate-200 dark:border-dark-border-DEFAULT bg-slate-50 dark:bg-dark-bg-tertiary text-sm text-slate-400 dark:text-dark-text-muted">
                   No files selected
                 </div>
               )}
@@ -465,10 +465,10 @@ export default function HomePage() {
               type="submit"
               disabled={!items.length || isConverting}
               className={clsx(
-                "w-full rounded-full bg-brand-500 px-6 py-4 text-lg font-semibold text-white shadow-lg transition",
+                "w-full rounded-full bg-brand-500 dark:bg-brand-600 px-6 py-4 text-lg font-semibold text-white shadow-lg dark:shadow-md transition",
                 !items.length || isConverting
                   ? "cursor-not-allowed opacity-60"
-                  : "hover:bg-brand-600 hover:shadow-xl"
+                  : "hover:bg-brand-600 dark:hover:bg-brand-700 hover:shadow-xl dark:hover:shadow-lg"
               )}
             >
               {isConverting
@@ -476,7 +476,7 @@ export default function HomePage() {
                 : "Convert to WebP"}
             </button>
 
-            <footer className="text-center text-xs font-medium text-slate-400">
+            <footer className="text-center text-xs font-medium text-slate-400 dark:text-dark-text-muted">
               © Webplyzer – Smart image optimization
             </footer>
           </form>
