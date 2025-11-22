@@ -77,6 +77,8 @@ export default function HomePage() {
   const [feedback, setFeedback] = useState<Feedback>(null);
   const [isConverting, setIsConverting] = useState(false);
   const [progress, setProgress] = useState<{ current: number; total: number } | null>(null);
+  const [isDropActive, setIsDropActive] = useState(false);
+  const [isUploaderVisible, setIsUploaderVisible] = useState(true);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const dropRef = useRef<HTMLLabelElement | null>(null);
@@ -125,6 +127,24 @@ export default function HomePage() {
     return () => {
       itemsRef.current.forEach((item) => URL.revokeObjectURL(item.previewUrl));
       sortableRef.current?.destroy();
+    };
+  }, []);
+
+  useEffect(() => {
+    const target = dropRef.current;
+    if (!target || typeof IntersectionObserver === "undefined") return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsUploaderVisible(entry.isIntersecting);
+      },
+      { threshold: 0.2 }
+    );
+
+    observer.observe(target);
+
+    return () => {
+      observer.disconnect();
     };
   }, []);
 
@@ -182,6 +202,21 @@ export default function HomePage() {
       return prev.filter((item) => item.id !== id);
     });
     setFeedback({ tone: "success", text: "File removed" });
+  };
+
+  const handleDropAreaDragOver = (event: React.DragEvent) => {
+    event.preventDefault();
+    setIsDropActive(true);
+  };
+
+  const handleDropAreaDragLeave = () => {
+    setIsDropActive(false);
+  };
+
+  const handleDropAreaDrop = (event: React.DragEvent) => {
+    event.preventDefault();
+    setIsDropActive(false);
+    handleFilesAdded(event.dataTransfer.files);
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -254,9 +289,16 @@ export default function HomePage() {
       ? Math.min(100, Math.round((progress.current / progress.total) * 100))
       : 0;
 
+  const hasItems = items.length > 0;
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-100 dark:bg-dark-bg-primary px-4 py-12">
-      <div className="w-full max-w-3xl rounded-3xl border border-slate-200 dark:border-dark-border-DEFAULT bg-white dark:bg-dark-bg-secondary shadow-[0_24px_48px_rgba(15,23,42,0.12)] dark:shadow-[0_24px_48px_rgba(0,0,0,0.4)]">
+    <div
+      className={clsx(
+        "flex min-h-screen items-center justify-center bg-slate-100 dark:bg-dark-bg-primary px-4 py-12",
+        hasItems && "pb-32"
+      )}
+    >
+      <div className="relative w-full max-w-3xl rounded-3xl border border-slate-200 dark:border-dark-border-DEFAULT bg-white dark:bg-dark-bg-secondary shadow-[0_24px_48px_rgba(15,23,42,0.12)] dark:shadow-[0_24px_48px_rgba(0,0,0,0.4)]">
         <div className="flex flex-col gap-8 p-6 sm:p-10">
           <header className="flex flex-col items-center text-center">
             <span className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-dark-bg-tertiary text-brand-500 dark:text-brand-400">
@@ -292,27 +334,12 @@ export default function HomePage() {
             <label
               ref={dropRef}
               htmlFor="fileInput"
-              onDragOver={(event) => {
-                event.preventDefault();
-                if (dropRef.current) {
-                  dropRef.current.dataset.dropping = "true";
-                }
-              }}
-              onDragLeave={() => {
-                if (dropRef.current) {
-                  delete dropRef.current.dataset.dropping;
-                }
-              }}
-              onDrop={(event) => {
-                event.preventDefault();
-                if (dropRef.current) {
-                  delete dropRef.current.dataset.dropping;
-                }
-                handleFilesAdded(event.dataTransfer.files);
-              }}
+              onDragOver={handleDropAreaDragOver}
+              onDragLeave={handleDropAreaDragLeave}
+              onDrop={handleDropAreaDrop}
               className={clsx(
                 "relative flex min-h-[220px] flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-slate-300 dark:border-dark-border-DEFAULT bg-slate-50/70 dark:bg-dark-bg-tertiary/50 p-8 text-center transition",
-                dropRef.current?.dataset.dropping
+                isDropActive
                   ? "border-brand-400 dark:border-brand-500 bg-brand-50/80 dark:bg-brand-900/20"
                   : "hover:border-brand-400 dark:hover:border-brand-500 hover:bg-white dark:hover:bg-dark-bg-secondary"
               )}
@@ -461,25 +488,87 @@ export default function HomePage() {
               )}
             </section>
 
-            <button
-              type="submit"
-              disabled={!items.length || isConverting}
-              className={clsx(
-                "w-full rounded-full bg-brand-500 dark:bg-brand-600 px-6 py-4 text-lg font-semibold text-white shadow-lg dark:shadow-md transition",
-                !items.length || isConverting
-                  ? "cursor-not-allowed opacity-60"
-                  : "hover:bg-brand-600 dark:hover:bg-brand-700 hover:shadow-xl dark:hover:shadow-lg"
-              )}
-            >
-              {isConverting
-                ? `Converting${progress ? ` (${progress.current}/${progress.total})` : ""}`
-                : "Convert to WebP"}
-            </button>
+            <div className={clsx(hasItems && "h-0")}>
+              <button
+                type="submit"
+                disabled={!items.length || isConverting}
+                className={clsx(
+                  hasItems
+                    ? "fixed inset-x-4 bottom-6 z-30 rounded-full bg-brand-500 dark:bg-brand-600 px-6 py-4 text-lg font-semibold text-white shadow-[0_14px_30px_rgba(33,150,243,0.3)] dark:shadow-[0_14px_30px_rgba(33,150,243,0.35)] transition md:left-1/2 md:right-auto md:w-[min(420px,calc(100%-32px))] md:-translate-x-1/2"
+                    : "w-full rounded-full bg-brand-500 dark:bg-brand-600 px-6 py-4 text-lg font-semibold text-white shadow-lg dark:shadow-md transition",
+                  !items.length || isConverting
+                    ? "cursor-not-allowed opacity-60"
+                    : "hover:bg-brand-600 dark:hover:bg-brand-700 hover:shadow-xl dark:hover:shadow-lg"
+                )}
+              >
+                {isConverting
+                  ? `Converting${progress ? ` (${progress.current}/${progress.total})` : ""}`
+                  : "Convert to WebP"}
+              </button>
+            </div>
 
             <footer className="text-center text-xs font-medium text-slate-400 dark:text-dark-text-muted">
               © Webplyzer – Smart image optimization
             </footer>
           </form>
+          {hasItems && !isUploaderVisible && (
+            <div className="pointer-events-auto fixed left-4 right-4 top-4 z-30 md:left-1/2 md:right-auto md:w-[min(420px,calc(100%-32px))] md:-translate-x-1/2">
+              <div
+                className={clsx(
+                  "flex items-center justify-between rounded-2xl border border-slate-200 dark:border-dark-border-DEFAULT bg-white/95 dark:bg-dark-bg-secondary/95 px-4 py-3 shadow-lg dark:shadow-md backdrop-blur transition",
+                  isDropActive && "border-brand-400 dark:border-brand-500 shadow-brand-500/20"
+                )}
+                onDragOver={(event) => {
+                  event.preventDefault();
+                  setIsDropActive(true);
+                  dropRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+                }}
+                onDragLeave={() => {
+                  setIsDropActive(false);
+                }}
+                onDrop={(event) => {
+                  event.preventDefault();
+                  setIsDropActive(false);
+                  handleFilesAdded(event.dataTransfer.files);
+                }}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 dark:bg-dark-bg-tertiary text-brand-500 dark:text-brand-400">
+                    <svg
+                      aria-hidden="true"
+                      className="h-5 w-5"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="1.75"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M12 16V4" />
+                      <path d="m8 8 4-4 4 4" />
+                      <path d="M20 16.5a4 4 0 0 0-.9-7.9 5 5 0 0 0-9.7-1.1A3.5 3.5 0 0 0 4 10.5a3.5 3.5 0 0 0 1 6.9Z" />
+                    </svg>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-semibold text-slate-700 dark:text-dark-text-primary">
+                      Drop files to add
+                    </span>
+                    <span className="text-xs text-slate-500 dark:text-dark-text-secondary">Scroll-free upload</span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    dropRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+                    fileInputRef.current?.click();
+                  }}
+                  className="rounded-full border border-slate-200 dark:border-dark-border-DEFAULT px-3 py-1 text-xs font-semibold text-slate-600 dark:text-dark-text-secondary transition hover:border-brand-300 dark:hover:border-brand-500 hover:text-brand-600 dark:hover:text-brand-400"
+                >
+                  Upload
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
