@@ -496,8 +496,8 @@ export default function HomePage() {
                 <ol className="list-decimal list-inside space-y-2 text-sm text-slate-600 dark:text-dark-text-secondary">
                   <li>Upload images or videos (up to 25 files)</li>
                   <li>Drag and drop to reorder files as needed</li>
-                  <li>Specify a base filename (default: "image")</li>
-                  <li>Click the "Convert" button</li>
+                  <li>Specify a base filename (default: &quot;image&quot;)</li>
+                  <li>Click the &quot;Convert&quot; button</li>
                   <li>Single files download directly; multiple files are zipped</li>
                 </ol>
               </section>

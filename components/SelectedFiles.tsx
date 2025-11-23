@@ -1,4 +1,3 @@
-import clsx from "clsx";
 import { RefObject } from "react";
 import { FileItem } from "./types";
 
