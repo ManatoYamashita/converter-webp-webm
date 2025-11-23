@@ -38,3 +38,8 @@ docs/
 - 変換ロジックや API の仕様変更時は `docs/specs/spec.md` を起点に更新し、`README.md` や `CLAUDE.md` との整合も確認する。
 - ブランチ/コミット運用に改定が入った際は `docs/dev/branch.md` を更新し、このファイルの概要も合わせて書き換える。
 - HEIC/HEIF 対応など新しい画像フォーマットを追加した際は、`docs/specs/spec.md` の変換処理セクションに技術的背景と実装詳細を記録する。
+
+---
+
+**最終更新日**: 2025-11-23
+**更新内容**: Next.js 16 アップグレード、React 19.2.0 安定版移行、Toast 通知システム（sonner）導入、MAX_FILE_SIZE_BYTES 制約追加、コンポーネント化反映

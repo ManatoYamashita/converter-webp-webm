@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Sortable, { SortableEvent } from "sortablejs";
+import clsx from "clsx";
 import { X, Upload, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -339,10 +340,13 @@ export default function HomePage() {
           throw new Error(message);
         }
 
+        const contentType = response.headers.get("content-type") ?? "";
+        const isVideo = contentType.includes("video/");
         const blob = await response.blob();
+        const ext = isVideo ? "webm" : "webp";
         converted.push({
           blob,
-          name: `${safeBaseName}_${index + 1}.webp`,
+          name: `${safeBaseName}_${index + 1}.${ext}`,
         });
       }
 

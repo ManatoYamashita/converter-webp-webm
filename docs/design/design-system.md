@@ -19,7 +19,7 @@ Webplyzerのデザインシステムは、**シンプル性**、**モダン性**
 
 ### Tech Stack
 
-- **Framework**: Next.js 15 + Tailwind CSS
+- **Framework**: Next.js 16.0.3 (stable) + Tailwind CSS
 - **Color System**: Material Design Blue (50-900) + Custom Dark Palette
 - **Typography**: System Font Stack (OS最適化)
 - **Dark Mode**: Class-based (`darkMode: 'class'`)

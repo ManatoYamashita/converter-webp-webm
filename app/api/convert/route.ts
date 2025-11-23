@@ -1,7 +1,6 @@
 import JSZip from "jszip";
 import sharp from "sharp";
 import ffmpeg from "fluent-ffmpeg";
-import ffmpegStatic from "ffmpeg-static";
 import heicConvert from "heic-convert";
 import { ALLOWED_EXTENSIONS, MAX_FILES, sanitizeFilename } from "@/lib/sanitizeFilename";
 import { writeFile, unlink } from "fs/promises";
@@ -12,7 +11,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-const ffmpegBinary = typeof ffmpegStatic === "string" && ffmpegStatic ? ffmpegStatic : process.env.FFMPEG_PATH;
+const ffmpegBinary = process.env.FFMPEG_PATH;
 
 if (ffmpegBinary) {
   ffmpeg.setFfmpegPath(ffmpegBinary);
@@ -76,10 +75,6 @@ async function convertVideoToWebM(inputBuffer: Buffer): Promise<Buffer> {
 
 export async function POST(req: Request) {
   try {
-    if (!ffmpegBinary) {
-      return Response.json({ error: "internal_error", detail: "ffmpeg binary not configured" }, { status: 500 });
-    }
-
     const formData = await req.formData();
     const baseName = sanitizeFilename(formData.get("base_name")?.toString());
     const files = formData.getAll("files") as File[];
@@ -99,7 +94,9 @@ export async function POST(req: Request) {
       const file = files[index];
       const extension = getExtension(file.name);
 
-      if (!ALLOWED_EXTENSIONS.has(extension)) {
+      const isVideoFile = isVideoExtension(extension) || file.type.startsWith("video/");
+
+      if (!ALLOWED_EXTENSIONS.has(extension) && !isVideoFile) {
         continue;
       }
 
@@ -111,7 +108,7 @@ export async function POST(req: Request) {
           ? Math.max(1, Math.trunc(fileIndexOverride))
           : index + 1;
 
-      if (isVideoExtension(extension)) {
+      if (isVideoFile) {
         const webmBuffer = await convertVideoToWebM(inputBuffer);
         converted.push({
           name: `${baseName}_${ordinal}.webm`,
