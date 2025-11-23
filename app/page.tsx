@@ -283,12 +283,6 @@ export default function HomePage() {
   const handleClearAll = () => {
     if (items.length === 0) return;
 
-    const confirmed = window.confirm(
-      `Are you sure you want to remove all ${items.length} file${items.length > 1 ? "s" : ""}?`
-    );
-
-    if (!confirmed) return;
-
     setItems((prev) => {
       prev.forEach((item) => URL.revokeObjectURL(item.previewUrl));
       return [];
