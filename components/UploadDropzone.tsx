@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import { RefObject } from "react";
+import { Upload } from "lucide-react";
 
 type UploadDropzoneProps = {
   dropRef: RefObject<HTMLLabelElement | null>;
@@ -41,20 +42,7 @@ export function UploadDropzone({
       )}
     >
       <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white dark:bg-dark-bg-tertiary text-brand-500 dark:text-brand-400 shadow-sm dark:shadow-none">
-        <svg
-          aria-hidden="true"
-          className="h-7 w-7"
-          fill="none"
-          stroke="currentColor"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="1.75"
-          viewBox="0 0 24 24"
-        >
-          <path d="M12 16V4" />
-          <path d="m8 8 4-4 4 4" />
-          <path d="M20 16.5a4 4 0 0 0-.9-7.9 5 5 0 0 0-9.7-1.1A3.5 3.5 0 0 0 4 10.5a3.5 3.5 0 0 0 1 6.9Z" />
-        </svg>
+        <Upload className="h-7 w-7" aria-hidden="true" />
       </div>
       <div className="space-y-1">
         <span className="block text-base font-semibold text-slate-700 dark:text-dark-text-primary">
