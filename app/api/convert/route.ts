@@ -2,6 +2,7 @@ import JSZip from "jszip";
 import sharp from "sharp";
 import ffmpeg from "fluent-ffmpeg";
 import ffmpegStatic from "ffmpeg-static";
+import ffmpegInstaller from "@ffmpeg-installer/ffmpeg";
 import heicConvert from "heic-convert";
 import { ALLOWED_EXTENSIONS, MAX_FILES, sanitizeFilename } from "@/lib/sanitizeFilename";
 import { writeFile, unlink } from "fs/promises";
@@ -12,8 +13,12 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-if (ffmpegStatic) {
-  ffmpeg.setFfmpegPath(ffmpegStatic);
+const ffmpegBinary =
+  (typeof ffmpegStatic === "string" && ffmpegStatic) ||
+  (ffmpegInstaller && typeof ffmpegInstaller.path === "string" ? ffmpegInstaller.path : undefined);
+
+if (ffmpegBinary) {
+  ffmpeg.setFfmpegPath(ffmpegBinary);
 }
 
 const VIDEO_EXTENSIONS = new Set(["mp4", "mov", "mkv", "avi", "webm", "m4v"]);
@@ -33,6 +38,10 @@ function isHeicExtension(extension: string): boolean {
 }
 
 async function convertVideoToWebM(inputBuffer: Buffer): Promise<Buffer> {
+  if (!ffmpegBinary) {
+    throw new Error("FFmpeg binary not available");
+  }
+
   const tempInputPath = join(tmpdir(), `input-${Date.now()}-${Math.random().toString(36).slice(2)}`);
   const tempOutputPath = join(tmpdir(), `output-${Date.now()}-${Math.random().toString(36).slice(2)}.webm`);
 
