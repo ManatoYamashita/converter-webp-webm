@@ -367,7 +367,8 @@ export default function HomePage() {
       if (converted.length === 1) {
         downloadBlob(converted[0].blob, converted[0].name);
       } else {
-        await downloadMultiple(converted, `${safeBaseName}_webp.zip`);
+        const ext = converted[0].name.endsWith(".webm") ? "webm" : "webp";
+        await downloadMultiple(converted, `${safeBaseName}_${ext}.zip`);
       }
 
       toast.success("Conversion completed successfully.");
@@ -462,7 +463,7 @@ export default function HomePage() {
             <div
               className={clsx(
                 "transition-all duration-200",
-                hasItems && "h-[60%] min-h-[140px]"
+                hasItems && "h-1/2 min-h-[140px]"
               )}
             >
               <UploadDropzone
