@@ -2,8 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Sortable, { SortableEvent } from "sortablejs";
-import clsx from "clsx";
-import { X } from "lucide-react";
+import { X, Upload } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { AppHeader } from "@/components/AppHeader";
@@ -81,6 +80,7 @@ export default function HomePage() {
   const [isDropActive, setIsDropActive] = useState(false);
   const [isUploaderVisible, setIsUploaderVisible] = useState(true);
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
+  const dragDepthRef = useRef(0);
   const structuredData = [
     {
       "@context": "https://schema.org",
@@ -165,6 +165,44 @@ export default function HomePage() {
     return () => {
       itemsRef.current.forEach((item) => URL.revokeObjectURL(item.previewUrl));
       sortableRef.current?.destroy();
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleDragOver = (event: DragEvent) => {
+      event.preventDefault();
+    };
+    const handleDragEnter = (event: DragEvent) => {
+      event.preventDefault();
+      dragDepthRef.current += 1;
+      setIsDropActive(true);
+    };
+    const handleDragLeave = (event: DragEvent) => {
+      event.preventDefault();
+      dragDepthRef.current = Math.max(0, dragDepthRef.current - 1);
+      if (dragDepthRef.current === 0) {
+        setIsDropActive(false);
+      }
+    };
+    const handleDrop = (event: DragEvent) => {
+      event.preventDefault();
+      dragDepthRef.current = 0;
+      setIsDropActive(false);
+      if (event.dataTransfer?.files?.length) {
+        handleFilesAdded(event.dataTransfer.files);
+      }
+    };
+
+    window.addEventListener("dragover", handleDragOver);
+    window.addEventListener("dragenter", handleDragEnter);
+    window.addEventListener("dragleave", handleDragLeave);
+    window.addEventListener("drop", handleDrop);
+
+    return () => {
+      window.removeEventListener("dragover", handleDragOver);
+      window.removeEventListener("dragenter", handleDragEnter);
+      window.removeEventListener("dragleave", handleDragLeave);
+      window.removeEventListener("drop", handleDrop);
     };
   }, []);
 
@@ -344,12 +382,7 @@ export default function HomePage() {
   };
 
   return (
-    <div
-      className={clsx(
-        "flex min-h-screen items-center justify-center bg-slate-100 dark:bg-dark-bg-primary px-4 py-12",
-        hasItems && "pb-32"
-      )}
-    >
+    <div className="flex min-h-screen items-center justify-center bg-slate-100 dark:bg-dark-bg-primary px-4 py-12 pb-40 lg:pb-48">
       <div className="relative w-full max-w-3xl rounded-3xl border border-slate-200 dark:border-dark-border-DEFAULT bg-white dark:bg-dark-bg-secondary shadow-[0_24px_48px_rgba(15,23,42,0.12)] dark:shadow-[0_24px_48px_rgba(0,0,0,0.4)] animate-fade-in-up">
         <div className="flex flex-col gap-8 p-6 sm:p-10">
           <script
@@ -415,8 +448,6 @@ export default function HomePage() {
               />
             </section>
 
-            <StickyConvertButton hasItems={hasItems} isConverting={isConverting} progressLabel={progressLabel} />
-
             <footer className="text-center text-xs font-medium text-slate-400 dark:text-dark-text-muted opacity-0 animate-fade-in-up-delay-3">
               © Webplyzer – Smart image optimization /{" "}
               <Link href="https://manapuraza.com" className="text-brand-500 dark:text-brand-400 hover:underline">
@@ -429,7 +460,7 @@ export default function HomePage() {
             </footer>
           </form>
 
-          {hasItems && !isUploaderVisible && (
+          {!isUploaderVisible && (
             <FloatingUploader
               isVisible
               isDropActive={isDropActive}
@@ -444,6 +475,8 @@ export default function HomePage() {
           )}
         </div>
       </div>
+
+      <StickyConvertButton hasItems={hasItems} isConverting={isConverting} progressLabel={progressLabel} />
 
       {isHelpModalOpen && (
         <div
@@ -512,6 +545,24 @@ export default function HomePage() {
               >
                 Close
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isDropActive && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-brand-500/10 dark:bg-brand-400/10 backdrop-blur-sm animate-fade-in pointer-events-none">
+          <div className="flex flex-col items-center gap-4 rounded-2xl border-2 border-dashed border-brand-400 dark:border-brand-500 bg-white/90 dark:bg-dark-bg-secondary/90 px-12 py-10 shadow-2xl">
+            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-brand-50 dark:bg-brand-900/30 text-brand-500 dark:text-brand-400">
+              <Upload className="h-10 w-10" aria-hidden="true" />
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold text-brand-600 dark:text-brand-400">
+                Drop files here
+              </p>
+              <p className="mt-2 text-sm text-slate-600 dark:text-dark-text-secondary">
+                Release to upload your images or videos
+              </p>
             </div>
           </div>
         </div>

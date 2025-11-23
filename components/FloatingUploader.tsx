@@ -23,8 +23,10 @@ export function FloatingUploader({
     <div className="pointer-events-auto fixed left-4 right-4 top-4 z-30 md:left-1/2 md:right-auto md:w-[min(420px,calc(100%-32px))] md:-translate-x-1/2">
       <div
         className={clsx(
-          "flex items-center justify-between rounded-2xl border border-slate-200 dark:border-dark-border-DEFAULT bg-white/95 dark:bg-dark-bg-secondary/95 px-4 py-3 shadow-lg dark:shadow-md backdrop-blur transition",
-          isDropActive && "border-brand-400 dark:border-brand-500 shadow-brand-500/20"
+          "flex items-center justify-between rounded-2xl border border-slate-200 dark:border-dark-border-DEFAULT bg-white/95 dark:bg-dark-bg-secondary/95 px-4 py-3 shadow-lg dark:shadow-md backdrop-blur transition-transform transition-[border-color,box-shadow,background-color] duration-200",
+          isDropActive
+            ? "scale-[1.02] border-brand-400 dark:border-brand-500 shadow-brand-500/30 dark:shadow-brand-500/25 bg-white dark:bg-dark-bg-secondary"
+            : "scale-100"
         )}
         onDragOver={onDragOver}
         onDragLeave={onDragLeave}
