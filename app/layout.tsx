@@ -3,7 +3,6 @@ import "./globals.css";
 
 const siteUrl = "https://webplyzer.app";
 const ogImage = "/ogp.webp";
-const favicon = "/favicon.ico";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -11,19 +10,40 @@ export const metadata: Metadata = {
     default: "Webplyzer | Batch WebP Converter",
     template: "%s | Webplyzer",
   },
-  description: "Convert JPG, JPEG, PNG, SVG, HEIC images to WebP in perfect order with drag-and-drop and sequential naming.",
-  keywords: ["WebP converter", "image optimizer", "batch convert", "drag and drop", "webplyzer"],
+  description:
+    "Convert JPG, JPEG, PNG, SVG, HEIC images to WebP and MP4, MOV, MKV, AVI, WEBM, M4V to WebM with drag-and-drop and sequential naming.",
+  keywords: [
+    "WebP converter",
+    "WebM converter",
+    "image optimizer",
+    "video converter",
+    "batch convert",
+    "drag and drop",
+    "webplyzer",
+  ],
   icons: {
-    icon: favicon,
-    shortcut: favicon,
-    apple: favicon,
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/favicon-16x16.png", type: "image/png", sizes: "16x16" },
+      { url: "/favicon-32x32.png", type: "image/png", sizes: "32x32" },
+      { url: "/favicon-48x48.png", type: "image/png", sizes: "48x48" },
+      { url: "/favicon-96x96.png", type: "image/png", sizes: "96x96" },
+      { url: "/favicon-192x192.png", type: "image/png", sizes: "192x192" },
+      { url: "/favicon-512x512.png", type: "image/png", sizes: "512x512" },
+    ],
+    shortcut: [
+      { url: "/favicon-32x32.png", type: "image/png", sizes: "32x32" },
+      { url: "/favicon.ico" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
   },
   alternates: {
     canonical: siteUrl,
   },
   openGraph: {
     title: "Webplyzer | Batch WebP Converter",
-    description: "Drag, reorder, and convert images to WebP with sequential filenames and ZIP export.",
+    description:
+      "Drag, reorder, and convert images to WebP and videos to WebM with sequential filenames and ZIP export.",
     url: siteUrl,
     siteName: "Webplyzer",
     images: [
@@ -40,7 +60,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Webplyzer | Batch WebP Converter",
-    description: "Convert JPG, PNG, SVG, HEIC to WebP with drag-and-drop and ZIP export.",
+    description: "Convert images to WebP and videos to WebM with drag-and-drop and ZIP export.",
     images: [ogImage],
   },
   applicationName: "Webplyzer",
