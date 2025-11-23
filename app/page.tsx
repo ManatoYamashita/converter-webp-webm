@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Sortable, { SortableEvent } from "sortablejs";
 import clsx from "clsx";
-import { HelpCircle, X } from "lucide-react";
+import { X } from "lucide-react";
 import Link from "next/link";
 import { AppHeader } from "@/components/AppHeader";
 import { UploadDropzone } from "@/components/UploadDropzone";
@@ -369,17 +369,7 @@ export default function HomePage() {
             dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
           />
           <div className="flex flex-col items-center text-center opacity-0 animate-fade-in-up-delay-1">
-            <AppHeader />
-            <div className="mt-2 flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setIsHelpModalOpen(true)}
-                className="flex items-center justify-center text-slate-400 dark:text-dark-text-muted hover:text-brand-500 dark:hover:text-brand-400 transition-colors"
-                aria-label="Show help"
-              >
-                <HelpCircle className="h-4 w-4" />
-              </button>
-            </div>
+            <AppHeader onHelpClick={() => setIsHelpModalOpen(true)} />
           </div>
 
           <form className="flex flex-col gap-8" onSubmit={handleSubmit}>
