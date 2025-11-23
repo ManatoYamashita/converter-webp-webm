@@ -20,5 +20,11 @@ export const ALLOWED_EXTENSIONS = new Set([
   "tiff",
   "bmp",
   "gif",
+  "mp4",
+  "mov",
+  "mkv",
+  "avi",
+  "webm",
+  "m4v",
 ]);
 export const MAX_FILES = 25;

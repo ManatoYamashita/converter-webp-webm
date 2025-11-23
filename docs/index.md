@@ -19,7 +19,7 @@ docs/
 ```
 
 ## 各ドキュメントの概要
-- `docs/specs/spec.md`: Next.js 16 + Node Runtime 構成、変換 API の挙動、制約値（ファイル上限や品質）を記載。
+- `docs/specs/spec.md`: Next.js 16 + Node Runtime 構成、画像 WebP / 動画 WebM 変換（Sharp + heic-convert + ffmpeg）、対応フォーマットと制約値を記載。
 - `docs/design/design-system.md`: カラーパレット、タイポグラフィ、UIコンポーネントパターン、ダークモード実装などデザインシステム全体を網羅。
 - `docs/dev/branch.md`: `main` ブランチ保護方針、ブランチ命名、コミット/PR テンプレートを定義。
 - `docs/dev/turbopack-support.md`: Turbopack のサポート状況と本番ビルドへの移行ガイド。
