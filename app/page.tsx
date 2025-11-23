@@ -408,12 +408,30 @@ export default function HomePage() {
               <span className="text-sm font-semibold text-slate-600 dark:text-dark-text-secondary">
                 Base filename for converted files
               </span>
-              <input
-                value={baseName}
-                onChange={(event) => setBaseName(event.target.value)}
-                placeholder="e.g. product-image"
-                className="w-full rounded-2xl border border-slate-200 dark:border-dark-border-DEFAULT bg-white dark:bg-dark-bg-tertiary px-4 py-3 text-base font-medium text-slate-800 dark:text-dark-text-primary outline-none transition focus:border-brand-400 dark:focus:border-brand-500 focus:shadow-[0_0_0_4px_rgba(33,150,243,0.12)] dark:focus:shadow-[0_0_0_4px_rgba(33,150,243,0.2)] placeholder:text-slate-400 dark:placeholder:text-dark-text-muted"
-              />
+              <div className="flex flex-col sm:flex-row gap-3">
+                <input
+                  value={baseName}
+                  onChange={(event) => setBaseName(event.target.value)}
+                  placeholder="e.g. product-image"
+                  className="w-full rounded-2xl border border-slate-200 dark:border-dark-border-DEFAULT bg-white dark:bg-dark-bg-tertiary px-4 py-3 text-base font-medium text-slate-800 dark:text-dark-text-primary outline-none transition focus:border-brand-400 dark:focus:border-brand-500 focus:shadow-[0_0_0_4px_rgba(33,150,243,0.12)] dark:focus:shadow-[0_0_0_4px_rgba(33,150,243,0.2)] placeholder:text-slate-400 dark:placeholder:text-dark-text-muted"
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" && !hasItems) {
+                      event.preventDefault();
+                      fileInputRef.current?.click();
+                    }
+                  }}
+                />
+                <button
+                  type={hasItems ? "submit" : "button"}
+                  onClick={() => {
+                    if (hasItems) return;
+                    fileInputRef.current?.click();
+                  }}
+                  className="w-full sm:w-auto sm:shrink-0 rounded-2xl border border-brand-200 dark:border-brand-600 bg-white dark:bg-dark-bg-tertiary px-4 py-3 text-sm font-semibold text-brand-600 dark:text-brand-400 transition hover:border-brand-400 dark:hover:border-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/20"
+                >
+                  {hasItems ? "Convert now" : "Choose files"}
+                </button>
+              </div>
             </label>
 
             <div className={hasItems ? "transition-all duration-200" : "transition-all duration-200"} style={hasItems ? { height: "60%", minHeight: "140px" } : undefined}>
