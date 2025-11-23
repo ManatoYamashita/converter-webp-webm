@@ -10,15 +10,20 @@ docs/
 ├─ index.md                ... 本ファイル。インデックスと運用ルール
 ├─ specs/
 │  └─ spec.md              ... プロダクト要件・システム仕様
+├─ design/
+│  └─ design-system.md     ... デザインシステム包括ガイド
 └─ dev/
    ├─ branch.md            ... ブランチ戦略・レビュー手順
-   └─ turbopack-support.md ... Turbopack サポート状況と移行ガイド
+   ├─ turbopack-support.md ... Turbopack サポート状況と移行ガイド
+   └─ next16-upgrade.md    ... Next.js 16 アップグレードサマリー
 ```
 
 ## 各ドキュメントの概要
-- `docs/specs/spec.md`: Next.js 15 + Node Runtime 構成、変換 API の挙動、制約値（ファイル上限や品質）を記載。
+- `docs/specs/spec.md`: Next.js 16 + Node Runtime 構成、画像 WebP / 動画 WebM 変換（Sharp + heic-convert + ffmpeg）、対応フォーマットと制約値を記載。
+- `docs/design/design-system.md`: カラーパレット、タイポグラフィ、UIコンポーネントパターン、ダークモード実装などデザインシステム全体を網羅。
 - `docs/dev/branch.md`: `main` ブランチ保護方針、ブランチ命名、コミット/PR テンプレートを定義。
-- `docs/dev/turbopack-support.md`: Next.js 15 における Turbopack のサポート状況と本番ビルドへの移行ガイド。
+- `docs/dev/turbopack-support.md`: Turbopack のサポート状況と本番ビルドへの移行ガイド。
+- `docs/dev/next16-upgrade.md`: Next.js 16 および React 19 へのアップグレード詳細記録（2025-11-22実施）。
 - `../README.md`: セットアップ手順とユーザー向け機能概要。
 - `../AGENTS.md`: コントリビュータ向けガイドライン（プロジェクト構造、開発コマンド、レビュー要件）。
 - `../CLAUDE.md`: Claude Code 向け技術ガイド（アーキテクチャ、開発コマンド、AIエージェント向けヒント）。
@@ -30,6 +35,6 @@ docs/
 4. PR では変更ファイルと検証内容（例: 主要ユースケースの手動確認）を明示し、レビュアが差分を追いやすい状態にする。
 
 ## 運用メモ
-- 変換ロジックや API の仕様変更時は `docs/specs/spec.md` を起点に更新し、`README.md` や UI 文言との整合も確認する。
+- 変換ロジックや API の仕様変更時は `docs/specs/spec.md` を起点に更新し、`README.md` や `CLAUDE.md` との整合も確認する。
 - ブランチ/コミット運用に改定が入った際は `docs/dev/branch.md` を更新し、このファイルの概要も合わせて書き換える。
-- 国際化リソース（`lib/i18n.ts`）の文言を追加・変更した際は、各ロケールの翻訳確認手順を記録し、UI の動作確認結果も共有する。
+- HEIC/HEIF 対応など新しい画像フォーマットを追加した際は、`docs/specs/spec.md` の変換処理セクションに技術的背景と実装詳細を記録する。

@@ -27,12 +27,13 @@
    - 単一画像の WebP 変換が成功し、ダウンロードできる
    - 複数画像をドラッグで並べ替えてから変換し、ZIP 内の順序が UI と一致する
    - 変換後のファイル名が一貫性を持った連番になる
-5. 差分を `git add` → コミット → `git push`。作業ブランチ（`feature/**` など）に push すると CI/CD が自動実行され、チェックとPR が作成される。PR 作成時はチェックリストを記載
+5. 差分を `git add` → コミット → `git push`。作業ブランチ（`feature/**`, `fix/**`, `chore/**` など）に push すると CI/CD が自動実行され、チェックとPR が作成される。PR 作成時はチェックリストを記載
 6. PR レビュー → 承認 → `prod` へマージ（CI/CD を通じて自動化）
 
 ## CI/CD と GitHub Actions
 - ランナー環境: `ubuntu-latest` / Node.js 20 / `npm ci` を使用。
-- `feature/**` への push で実行: Lint (`npm run lint`) → 型チェック（`npx tsc --noEmit`）→ Build（`npm run build`）。すべて成功すると `origin/prod` との差分サマリーとチェック結果を本文に含む `prod` 向けPRを自動生成または更新する。
+- `prod`/`main` を除く開発ブランチへの push で実行（例: `feature/**`, `fix/**`, `chore/**` など）: Lint (`npm run lint`) → 型チェック（`npx tsc --noEmit`）→ Build（`npm run build`）。すべて成功すると `origin/prod` との差分サマリーとチェック結果を本文に含む `prod` 向けPRを自動生成または更新する。
+- 自動PR作成はリポジトリで「Actions による PR 作成を許可」もしくは `PR_CREATION_TOKEN`（`pull_request` 作成権限を持つ PAT）を `secrets` に設定している場合のみ動作する。許可されていない場合は lint/typecheck/build のみ実行され、PRは作成されない。
 - 自動生成PRタイトル: `chore: sync <branch> to prod`。本文にソース/ベースブランチ、先行コミット数、Lint/Typecheck/Build結果、`git diff --stat origin/prod...HEAD` の概要を記載。
 - `prod` 更新時に実行: 本番ビルド（`npm run build`）→ サーバー起動（`next start --hostname 0.0.0.0 --port 3000`）→ `wait-on` で待機 → `@lhci/cli` で Lighthouse 推奨プリセットを1回実行し、`.lighthouseci` をアーティファクトとして保存。
 - PRマージ前にCI結果と自動PRのサマリーを必ず確認し、Lighthouseレポートも合わせてレビューすること。

@@ -1,0 +1,23 @@
+{
+  "name": "Webplyzer",
+  "short_name": "Webplyzer",
+  "description": "Batch convert images (JPG, JPEG, PNG, AVIF, SVG, HEIC) to WebP and videos (MP4, MOV, MKV, AVI, WEBM, M4V) to WebM with drag-and-drop and sequential naming.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b1d38",
+  "theme_color": "#2196f3",
+  "icons": [
+    {
+      "src": "/favicon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

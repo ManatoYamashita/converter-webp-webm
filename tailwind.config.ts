@@ -52,6 +52,24 @@ const config: Config = {
       boxShadow: {
         surface: "0 8px 32px rgba(33, 150, 243, 0.12), 0 2px 8px rgba(0,0,0,0.04)",
       },
+      keyframes: {
+        fadeInUp: {
+          '0%': {
+            opacity: '0',
+            transform: 'translateY(20px) scale(0.95)',
+          },
+          '100%': {
+            opacity: '1',
+            transform: 'translateY(0) scale(1)',
+          },
+        },
+      },
+      animation: {
+        'fade-in-up': 'fadeInUp 300ms ease-out forwards',
+        'fade-in-up-delay-1': 'fadeInUp 300ms ease-out 100ms forwards',
+        'fade-in-up-delay-2': 'fadeInUp 300ms ease-out 200ms forwards',
+        'fade-in-up-delay-3': 'fadeInUp 300ms ease-out 300ms forwards',
+      },
     },
   },
   plugins: [],

@@ -2,8 +2,11 @@ name: Feature Branch CI
 
 on:
   push:
-    branches:
-      - "feature/**"
+    branches-ignore:
+      - prod
+      - main
+      - "renovate/**"
+      - "dependabot/**"
 
 permissions:
   contents: read
@@ -12,6 +15,8 @@ permissions:
 jobs:
   validate-and-pr:
     runs-on: ubuntu-latest
+    env:
+      PR_TOKEN: ${{ secrets.PR_CREATION_TOKEN }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -26,6 +31,9 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Install sharp with platform-specific binaries
+        run: npm install --include=optional sharp
 
       - name: Lint
         id: lint
@@ -49,14 +57,16 @@ jobs:
           cat diff-stat.txt
 
       - name: Create or update PR to prod
-        if: success()
+        if: success() && env.PR_TOKEN != ''
         uses: actions/github-script@v7
         env:
           LINT_RESULT: ${{ steps.lint.outcome }}
           TYPECHECK_RESULT: ${{ steps.typecheck.outcome }}
           BUILD_RESULT: ${{ steps.build.outcome }}
           COMMITS_AHEAD: ${{ steps.diff.outputs.commits }}
+          PR_TOKEN: ${{ env.PR_TOKEN }}
         with:
+          github-token: ${{ env.PR_TOKEN }}
           script: |
             const { repo, owner } = context.repo;
             const headBranch = context.ref.replace("refs/heads/", "");
@@ -119,3 +129,7 @@ jobs:
               });
               core.info(`Created PR #${pr.data.number}`);
             }
+
+      - name: Skip PR creation (token not provided)
+        if: success() && env.PR_TOKEN == ''
+        run: echo "PR_CREATION_TOKEN is not set. Skipping PR creation (run lint/typecheck/build only)."

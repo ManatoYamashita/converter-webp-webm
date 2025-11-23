@@ -3,14 +3,15 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
-Webplyzer is a Next.js 15 App Router application for batch WebP conversion. Users upload JPG/JPEG/PNG files (up to 25), reorder them via drag-and-drop, and convert them to WebP format with sequential numbering. Single files download directly; multiple files are zipped client-side.
+Webplyzer is a Next.js 15 App Router application for batch WebP conversion. Users upload JPG/JPEG/PNG/HEIC files (up to 25), reorder them via drag-and-drop, and convert them to WebP format with sequential numbering. Single files download directly; multiple files are zipped client-side. Features a modern dark mode UI with English-only interface.
 
 **Tech Stack:**
 - Next.js 15 (canary) with App Router + TypeScript (strict mode)
 - React 19 RC with hooks-based components
-- Tailwind CSS for styling, `clsx` for conditional classes
+- Tailwind CSS for styling with dark mode support, `clsx` for conditional classes
 - `sortablejs` for drag-and-drop reordering
 - `sharp` for server-side WebP conversion (Node runtime)
+- `heic-convert` for HEIC/HEIF to JPEG conversion before WebP processing
 - `jszip` for client-side ZIP generation
 
 **Node.js Requirement:** 18.18+ (specified in `package.json` engines and `.nvmrc`)
@@ -42,33 +43,35 @@ No automated tests exist. Before creating a PR, verify:
 
 - Single image conversion → WebP downloads correctly
 - Multiple images + reorder → ZIP file order matches UI
+- HEIC/HEIF conversion → Converts to WebP successfully
 - Invalid file type (e.g., `.gif`) → Error message displays
-- Locale switching (JA/EN/KO) → UI text updates correctly
+- Dark mode → All UI elements display correctly in dark theme
 
 ## Architecture & Key Files
 
 ### App Router Structure (`app/`)
 
-- **`app/page.tsx`** (369 lines): Main UI component with file upload, drag-and-drop reordering (SortableJS), locale switching, conversion logic, and progress tracking. All frontend state (`useState`) and effects (`useEffect`) are here.
-- **`app/layout.tsx`**: Root layout with metadata and globals.css import.
-- **`app/globals.css`**: Tailwind directives, custom scrollbar styles, and theme colors.
-- **`app/api/convert/route.ts`**: WebP conversion API endpoint (Node runtime). Accepts `FormData` with `base_name`, `file_index`, and `files`. Returns single WebP or ZIP of multiple WebPs. Uses `sharp` for conversion (quality 90, EXIF rotation).
+- **`app/page.tsx`** (~485 lines): Main UI component with file upload, drag-and-drop reordering (SortableJS), conversion logic, and progress tracking. All frontend state (`useState`) and effects (`useEffect`) are here. English-only UI with full dark mode support.
+- **`app/layout.tsx`**: Root layout with metadata, globals.css import, and dark mode enabled by default.
+- **`app/globals.css`**: Tailwind directives, dark mode color scheme, custom scrollbar styles.
+- **`app/api/convert/route.ts`**: WebP conversion API endpoint (Node runtime). Accepts `FormData` with `base_name`, `file_index`, and `files`. Returns single WebP or ZIP of multiple WebPs. Uses `heic-convert` for HEIC/HEIF files (converts to JPEG first), then `sharp` for WebP conversion (quality 90, EXIF rotation).
 
 ### Libraries (`lib/`)
-- **`lib/sanitizeFilename.ts`**: Exports `sanitizeFilename()` (removes dangerous characters), `ALLOWED_EXTENSIONS` (`.jpg`, `.jpeg`, `.png`), and `MAX_FILES` (25). Used by both client and server.
-- **`lib/i18n.ts`**: Translation strings for JA/EN/KO locales. Keys map to UI messages (errors, labels, buttons).
+- **`lib/sanitizeFilename.ts`**: Exports `sanitizeFilename()` (removes dangerous characters), `ALLOWED_EXTENSIONS` (`.jpg`, `.jpeg`, `.png`, `.heic`, `.heif`), and `MAX_FILES` (25). Used by both client and server.
 
 ### Configuration
 
 - **`next.config.mjs`**: Enables `optimizePackageImports` for SortableJS. ESLint runs on `app`, `components`, `lib`. Note: `typedRoutes` is disabled due to Turbopack incompatibility.
 - **`tsconfig.json`**: Strict TypeScript with `@/*` path alias pointing to root.
-- **`tailwind.config.ts`**: Defines `brand` colors (blue/green/yellow/red) used throughout UI.
+- **`tailwind.config.ts`**: Defines `brand` colors (blue) and `dark` mode colors (bg/text/border variants) with `darkMode: 'class'` enabled.
+- **`heic-convert.d.ts`**: Type definitions for `heic-convert` package (no official types available).
 
 ### Key Architectural Patterns
-1. **Client-Server Separation**: Image conversion happens server-side (Node runtime required for `sharp`). Client handles file selection, reordering, progress tracking, and ZIP generation.
-2. **Sequential Conversion**: Client sends files one-by-one to `/api/convert` with `file_index` to maintain order. Server validates extension, converts to WebP, returns buffer.
-3. **Dynamic Locale Management**: `useState` holds current locale (`ja`/`en`/`ko`). All UI text looks up translations from `lib/i18n.ts`.
-4. **Error Handling**: API returns JSON `{ error: "code" }` for validation failures. Client translates error codes to localized messages.
+1. **Client-Server Separation**: Image conversion happens server-side (Node runtime required for `sharp` and `heic-convert`). Client handles file selection, reordering, progress tracking, and ZIP generation.
+2. **Sequential Conversion**: Client sends files one-by-one to `/api/convert` with `file_index` to maintain order. Server validates extension, converts HEIC/HEIF to JPEG if needed, then converts to WebP, returns buffer.
+3. **HEIC/HEIF Support**: Server detects HEIC/HEIF files and uses `heic-convert` to convert them to JPEG before passing to `sharp` for WebP conversion. This two-step process is necessary because `sharp` doesn't natively support HEIC format due to patent licensing issues.
+4. **Dark Mode UI**: Tailwind class-based dark mode with custom color palette. HTML element has `class="dark"` by default, enabling dark theme globally.
+5. **Error Handling**: API returns JSON `{ error: "code" }` for validation failures. Client translates error codes to English error messages.
 
 ### Critical Constraints
 - **MAX_FILES = 25**: Enforced in `lib/sanitizeFilename.ts`, validated server-side.

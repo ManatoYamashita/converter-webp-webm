@@ -2,22 +2,23 @@
 
 import { useEffect, useRef, useState } from "react";
 import Sortable, { SortableEvent } from "sortablejs";
-import clsx from "clsx";
+import { X, Upload, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { toast } from "sonner";
+import { AppHeader } from "@/components/AppHeader";
+import { UploadDropzone } from "@/components/UploadDropzone";
+import { ProgressPanel } from "@/components/ProgressPanel";
+import { SelectedFiles } from "@/components/SelectedFiles";
+import { StickyConvertButton } from "@/components/StickyConvertButton";
+import { FloatingUploader } from "@/components/FloatingUploader";
+import { FileItem } from "@/components/types";
 import { ALLOWED_EXTENSIONS, MAX_FILES, sanitizeFilename } from "@/lib/sanitizeFilename";
 
-type FileItem = {
-  id: string;
-  file: File;
-  previewUrl: string;
-  sizeLabel: string;
-};
-
-type Feedback =
-  | {
-      tone: "success" | "error";
-      text: string;
-    }
-  | null;
+const SITE_URL = "https://webplyzer.app";
+const SUPPORTED_FORMATS_LABEL =
+  "JPG / JPEG / PNG / AVIF / SVG / HEIC / HEIF / TIFF / BMP / GIF / MP4 / MOV / MKV / AVI / WEBM / M4V";
+const ACCEPT_TYPES =
+  ".jpg,.jpeg,.png,.avif,.svg,.heic,.heif,.tif,.tiff,.bmp,.gif,.mp4,.mov,.mkv,.avi,.webm,.m4v";
 
 function formatFileSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -65,7 +66,7 @@ function resolveErrorMessage(code: string | undefined): string {
     case "no_valid_files":
       return "Conversion failed. Please try again.";
     case "unsupported_file":
-      return "Only JPG, JPEG, PNG, HEIC files are supported.";
+      return "Only JPG, JPEG, PNG, AVIF, SVG, HEIC, HEIF, TIFF, BMP, GIF, MP4, MOV, MKV, AVI, WEBM, M4V files are supported.";
     default:
       return "Conversion failed. Please try again.";
   }
@@ -74,9 +75,48 @@ function resolveErrorMessage(code: string | undefined): string {
 export default function HomePage() {
   const [items, setItems] = useState<FileItem[]>([]);
   const [baseName, setBaseName] = useState("image");
-  const [feedback, setFeedback] = useState<Feedback>(null);
   const [isConverting, setIsConverting] = useState(false);
   const [progress, setProgress] = useState<{ current: number; total: number } | null>(null);
+  const [isDropActive, setIsDropActive] = useState(false);
+  const [isUploaderVisible, setIsUploaderVisible] = useState(true);
+  const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
+  const dragDepthRef = useRef(0);
+  const structuredData = [
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      name: "Webplyzer",
+      url: SITE_URL,
+      description:
+        "Convert JPG, JPEG, PNG, AVIF, SVG, HEIC images to WebP and MP4, MOV, MKV, AVI, WEBM, M4V to WebM with drag-and-drop, reordering, and sequential naming.",
+      potentialAction: {
+        "@type": "Action",
+        name: "Convert media to WebP/WebM",
+        target: `${SITE_URL}/?action=convert`,
+      },
+      inLanguage: "en",
+      publisher: {
+        "@type": "Organization",
+        name: "Webplyzer",
+        url: SITE_URL,
+      },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      name: "Webplyzer",
+      applicationCategory: "MultimediaApplication",
+      operatingSystem: "Any",
+      offers: {
+        "@type": "Offer",
+        price: "0",
+        priceCurrency: "USD",
+      },
+      url: SITE_URL,
+      description:
+        "Batch convert images to WebP and videos to WebM, maintain order, and export as ZIP for web performance optimization.",
+    },
+  ];
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const dropRef = useRef<HTMLLabelElement | null>(null);
@@ -128,6 +168,62 @@ export default function HomePage() {
     };
   }, []);
 
+  useEffect(() => {
+    const handleDragOver = (event: DragEvent) => {
+      event.preventDefault();
+    };
+    const handleDragEnter = (event: DragEvent) => {
+      event.preventDefault();
+      dragDepthRef.current += 1;
+      setIsDropActive(true);
+    };
+    const handleDragLeave = (event: DragEvent) => {
+      event.preventDefault();
+      dragDepthRef.current = Math.max(0, dragDepthRef.current - 1);
+      if (dragDepthRef.current === 0) {
+        setIsDropActive(false);
+      }
+    };
+    const handleDrop = (event: DragEvent) => {
+      event.preventDefault();
+      dragDepthRef.current = 0;
+      setIsDropActive(false);
+      if (event.dataTransfer?.files?.length) {
+        handleFilesAdded(event.dataTransfer.files);
+      }
+    };
+
+    window.addEventListener("dragover", handleDragOver);
+    window.addEventListener("dragenter", handleDragEnter);
+    window.addEventListener("dragleave", handleDragLeave);
+    window.addEventListener("drop", handleDrop);
+
+    return () => {
+      window.removeEventListener("dragover", handleDragOver);
+      window.removeEventListener("dragenter", handleDragEnter);
+      window.removeEventListener("dragleave", handleDragLeave);
+      window.removeEventListener("drop", handleDrop);
+    };
+  }, []);
+
+  useEffect(() => {
+    const target = dropRef.current;
+    if (!target || typeof IntersectionObserver === "undefined") return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsUploaderVisible(entry.isIntersecting);
+      },
+      { threshold: 0.2 }
+    );
+
+    observer.observe(target);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
   const handleFilesAdded = (files: FileList | File[]) => {
     const incoming = Array.from(files);
     if (!incoming.length) return;
@@ -165,11 +261,11 @@ export default function HomePage() {
     });
 
     if (blockedByLimit) {
-      setFeedback({ tone: "error", text: "Error: You can upload up to 25 files" });
+      toast.error("Error: You can upload up to 25 files");
     } else if (rejectedUnsupported) {
-      setFeedback({ tone: "error", text: "Error: Only JPG, JPEG, PNG, HEIC files are supported." });
-    } else {
-      setFeedback(null);
+      toast.error(
+        "Error: Only JPG, JPEG, PNG, AVIF, SVG, HEIC, HEIF, TIFF, BMP, GIF, MP4, MOV, MKV, AVI, WEBM, M4V files are supported."
+      );
     }
   };
 
@@ -181,21 +277,45 @@ export default function HomePage() {
       }
       return prev.filter((item) => item.id !== id);
     });
-    setFeedback({ tone: "success", text: "File removed" });
+    toast.success("File removed");
+  };
+
+  const handleClearAll = () => {
+    if (items.length === 0) return;
+
+    setItems((prev) => {
+      prev.forEach((item) => URL.revokeObjectURL(item.previewUrl));
+      return [];
+    });
+    toast.success("All files removed");
+  };
+
+  const handleDropAreaDragOver = (event: React.DragEvent) => {
+    event.preventDefault();
+    setIsDropActive(true);
+  };
+
+  const handleDropAreaDragLeave = () => {
+    setIsDropActive(false);
+  };
+
+  const handleDropAreaDrop = (event: React.DragEvent) => {
+    event.preventDefault();
+    setIsDropActive(false);
+    handleFilesAdded(event.dataTransfer.files);
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!items.length) {
-      setFeedback({ tone: "error", text: "No files selected" });
+      toast.error("No files selected");
       return;
     }
 
     const safeBaseName = sanitizeFilename(baseName);
     setIsConverting(true);
     setProgress({ current: 0, total: items.length });
-    setFeedback(null);
 
     try {
       const converted: Array<{ blob: Blob; name: string }> = [];
@@ -232,16 +352,16 @@ export default function HomePage() {
         await downloadMultiple(converted, `${safeBaseName}_webp.zip`);
       }
 
-      setFeedback({ tone: "success", text: "Conversion completed successfully." });
+      toast.success("Conversion completed successfully.");
       setItems((prev) => {
         prev.forEach((item) => URL.revokeObjectURL(item.previewUrl));
         return [];
       });
     } catch (error) {
       if (error instanceof Error) {
-        setFeedback({ tone: "error", text: error.message });
+        toast.error(error.message);
       } else {
-        setFeedback({ tone: "error", text: "Conversion failed. Please try again." });
+        toast.error("Conversion failed. Please try again.");
       }
   } finally {
     setIsConverting(false);
@@ -254,234 +374,243 @@ export default function HomePage() {
       ? Math.min(100, Math.round((progress.current / progress.total) * 100))
       : 0;
 
+  const hasItems = items.length > 0;
+  const progressLabel = isConverting
+    ? `Converting${progress ? ` (${progress.current}/${progress.total})` : ""}`
+    : "Convert to WebP / WebM";
+
+  const handleFloatingDragOver = (event: React.DragEvent) => {
+    event.preventDefault();
+    setIsDropActive(true);
+    dropRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
+
+  const handleFloatingDrop = (event: React.DragEvent) => {
+    event.preventDefault();
+    setIsDropActive(false);
+    handleFilesAdded(event.dataTransfer.files);
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-100 px-4 py-12">
-      <div className="w-full max-w-3xl rounded-3xl border border-slate-200 bg-white shadow-[0_24px_48px_rgba(15,23,42,0.12)]">
+    <div className="flex min-h-screen items-center justify-center bg-slate-100 dark:bg-dark-bg-primary px-4 py-12 pb-40 lg:pb-48">
+      <div className="relative w-full max-w-3xl rounded-3xl border border-slate-200 dark:border-dark-border-DEFAULT bg-white dark:bg-dark-bg-secondary shadow-[0_24px_48px_rgba(15,23,42,0.12)] dark:shadow-[0_24px_48px_rgba(0,0,0,0.4)] animate-fade-in-up">
         <div className="flex flex-col gap-8 p-6 sm:p-10">
-          <header className="flex flex-col items-center text-center">
-            <span className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-brand-500">
-              <svg
-                aria-hidden="true"
-                className="h-6 w-6"
-                fill="none"
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="1.75"
-                viewBox="0 0 24 24"
-              >
-                <path d="M7 17h10a4 4 0 0 0 .54-7.97 5 5 0 0 0-9.82-1.5A3.5 3.5 0 0 0 7 17Zm5-8v10" />
-                <path d="m9 13 3 3 3-3" />
-              </svg>
-            </span>
-            <h1 className="mt-4 text-2xl font-semibold text-slate-900 sm:text-3xl">Webplyzer - Batch WebP Converter</h1>
-            <p className="mt-2 text-sm text-slate-500">Convert your images to WebP format</p>
-          </header>
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+          />
+          <div className="flex flex-col items-center text-center opacity-0 animate-fade-in-up-delay-1">
+            <AppHeader onHelpClick={() => setIsHelpModalOpen(true)} />
+          </div>
 
           <form className="flex flex-col gap-8" onSubmit={handleSubmit}>
             <label className="flex flex-col gap-2 text-left">
-              <span className="text-sm font-semibold text-slate-600">Base filename for converted images</span>
-              <input
-                value={baseName}
-                onChange={(event) => setBaseName(event.target.value)}
-                placeholder="e.g. product-image"
-                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base font-medium text-slate-800 outline-none transition focus:border-brand-400 focus:shadow-[0_0_0_4px_rgba(33,150,243,0.12)]"
-              />
-            </label>
-
-            <label
-              ref={dropRef}
-              htmlFor="fileInput"
-              onDragOver={(event) => {
-                event.preventDefault();
-                if (dropRef.current) {
-                  dropRef.current.dataset.dropping = "true";
-                }
-              }}
-              onDragLeave={() => {
-                if (dropRef.current) {
-                  delete dropRef.current.dataset.dropping;
-                }
-              }}
-              onDrop={(event) => {
-                event.preventDefault();
-                if (dropRef.current) {
-                  delete dropRef.current.dataset.dropping;
-                }
-                handleFilesAdded(event.dataTransfer.files);
-              }}
-              className={clsx(
-                "relative flex min-h-[220px] flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-slate-300 bg-slate-50/70 p-8 text-center transition",
-                dropRef.current?.dataset.dropping
-                  ? "border-brand-400 bg-brand-50/80"
-                  : "hover:border-brand-400 hover:bg-white"
-              )}
-            >
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white text-brand-500 shadow-sm">
-                <svg
-                  aria-hidden="true"
-                  className="h-7 w-7"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="1.75"
-                  viewBox="0 0 24 24"
+              <span className="text-sm font-semibold text-slate-600 dark:text-dark-text-secondary">
+                Base filename for converted files
+              </span>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <input
+                  value={baseName}
+                  onChange={(event) => setBaseName(event.target.value)}
+                  placeholder="e.g. product-image"
+                  className="w-full rounded-2xl border border-slate-200 dark:border-dark-border-DEFAULT bg-white dark:bg-dark-bg-tertiary px-4 py-3 text-base font-medium text-slate-800 dark:text-dark-text-primary outline-none transition focus:border-brand-400 dark:focus:border-brand-500 focus:shadow-[0_0_0_4px_rgba(33,150,243,0.12)] dark:focus:shadow-[0_0_0_4px_rgba(33,150,243,0.2)] placeholder:text-slate-400 dark:placeholder:text-dark-text-muted"
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" && !hasItems) {
+                      event.preventDefault();
+                      fileInputRef.current?.click();
+                    }
+                  }}
+                />
+                <button
+                  type={hasItems ? "submit" : "button"}
+                  onClick={() => {
+                    if (hasItems) return;
+                    fileInputRef.current?.click();
+                  }}
+                  className="w-full sm:w-auto sm:shrink-0 rounded-2xl border border-brand-200 dark:border-brand-600 bg-white dark:bg-dark-bg-tertiary px-4 py-3 text-sm font-semibold text-brand-600 dark:text-brand-400 transition hover:border-brand-400 dark:hover:border-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/20"
                 >
-                  <path d="M12 16V4" />
-                  <path d="m8 8 4-4 4 4" />
-                  <path d="M20 16.5a4 4 0 0 0-.9-7.9 5 5 0 0 0-9.7-1.1A3.5 3.5 0 0 0 4 10.5a3.5 3.5 0 0 0 1 6.9Z" />
-                </svg>
+                  {hasItems ? "Convert now" : "Choose files"}
+                </button>
               </div>
-              <div className="space-y-1">
-                <span className="block text-base font-semibold text-slate-700">
-                  Select or drag & drop images
-                </span>
-                <p className="text-xs text-slate-500">
-                  JPG / JPEG / PNG · max: {MAX_FILES}
-                </p>
-              </div>
-              <input
-                ref={fileInputRef}
-                id="fileInput"
-                type="file"
-                accept=".jpg,.jpeg,.png"
-                multiple
-                className="hidden"
-                onChange={(event) => {
-                  if (event.target.files) {
-                    handleFilesAdded(event.target.files);
-                    event.target.value = "";
-                  }
-                }}
-              />
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="rounded-full border border-brand-200 bg-white px-5 py-2 text-sm font-semibold text-brand-600 transition hover:border-brand-400 hover:bg-brand-50"
-              >
-                Add more
-              </button>
             </label>
 
-            {feedback && (
-              <p
-                className={clsx(
-                  "rounded-2xl px-4 py-3 text-sm font-semibold",
-                  feedback.tone === "success"
-                    ? "bg-green-50 text-green-600"
-                    : "bg-red-50 text-red-600"
-                )}
-              >
-                {feedback.text}
-              </p>
-            )}
+            <div className={hasItems ? "transition-all duration-200" : "transition-all duration-200"} style={hasItems ? { height: "60%", minHeight: "140px" } : undefined}>
+              <UploadDropzone
+                dropRef={dropRef}
+                fileInputRef={fileInputRef}
+                isDropActive={isDropActive}
+                supportedFormatsLabel={SUPPORTED_FORMATS_LABEL}
+                maxFiles={MAX_FILES}
+                accept={ACCEPT_TYPES}
+                onFilesAdded={handleFilesAdded}
+                onDragOver={handleDropAreaDragOver}
+                onDragLeave={handleDropAreaDragLeave}
+                onDrop={handleDropAreaDrop}
+              />
+            </div>
 
             {progress && (
-              <div className="space-y-2 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <div className="h-2 rounded-full bg-slate-200">
-                  <div
-                    className="h-2 rounded-full bg-brand-500 transition-all"
-                    style={{ width: `${progressPercent}%` }}
-                  />
-                </div>
-                <p className="text-xs font-medium text-slate-500">
-                  Converting {progress.current}/{progress.total}
-                </p>
-              </div>
+              <ProgressPanel
+                progressPercent={progressPercent}
+                current={progress.current}
+                total={progress.total}
+              />
             )}
 
-            <section className="space-y-4">
+            <section className="space-y-4 opacity-0 animate-fade-in-up-delay-3">
               <div className="flex items-center justify-between">
                 <div className="flex flex-col items-start gap-1 sm:flex-row sm:items-center sm:gap-3">
-                  <span className="text-sm font-semibold text-slate-600">Selected files</span>
-                  <span className="text-xs text-slate-400">Drag to change the order</span>
+                  <span className="text-sm font-semibold text-slate-600 dark:text-dark-text-secondary">
+                    Selected files
+                  </span>
+                  <span className="text-xs text-slate-400 dark:text-dark-text-muted">Drag to change the order</span>
                 </div>
-                <span className="text-sm font-semibold text-brand-600">
-                  {items.length} items / max {MAX_FILES}
-                </span>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-semibold text-brand-600 dark:text-brand-400">
+                    {items.length} items / max {MAX_FILES}
+                  </span>
+                  {items.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleClearAll}
+                      disabled={isConverting}
+                      className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-red-600 dark:text-red-400 transition hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                      aria-label="Clear all files"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+                      Clear all
+                    </button>
+                  )}
+                </div>
               </div>
 
-              {items.length > 0 ? (
-                <div
-                  ref={galleryRef}
-                  className="flex max-h-80 flex-col gap-3 overflow-y-auto pr-1"
-                >
-                  {items.map((item, index) => (
-                    <div
-                      key={item.id}
-                      data-id={item.id}
-                      className="flex items-center gap-4 rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-sm transition hover:shadow-md"
-                    >
-                      <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-xl bg-slate-100">
-                        <img
-                          src={item.previewUrl}
-                          alt={item.file.name}
-                          className="h-full w-full object-cover"
-                          draggable={false}
-                        />
-                      </div>
-                      <div className="flex flex-1 flex-col gap-3">
-                        <div className="flex items-start justify-between gap-3">
-                          <p className="text-sm font-semibold text-slate-800">{item.file.name}</p>
-                          <button
-                            type="button"
-                            onClick={() => handleRemove(item.id)}
-                            disabled={isConverting}
-                            className="flex h-8 w-8 items-center justify-center rounded-full border border-transparent text-slate-400 transition hover:border-slate-200 hover:text-slate-600 disabled:cursor-not-allowed disabled:opacity-40"
-                            aria-label="Remove"
-                          >
-                            ×
-                          </button>
-                        </div>
-                        <div className="flex items-center justify-between text-xs text-slate-500">
-                          <span>{item.sizeLabel}</span>
-                          <span className="flex items-center gap-2">
-                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold text-slate-500">
-                              {index + 1}
-                            </span>
-                            <button
-                              type="button"
-                              className="js-drag-handle flex items-center justify-center rounded-full border border-transparent px-3 py-1 text-xs font-semibold text-slate-400 transition hover:border-slate-200 hover:text-slate-600 active:cursor-grabbing disabled:cursor-not-allowed"
-                              disabled={isConverting}
-                              aria-label="Drag to change the order"
-                            >
-                              <span aria-hidden="true">⋮⋮</span>
-                            </button>
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="flex min-h-[160px] items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 text-sm text-slate-400">
-                  No files selected
-                </div>
-              )}
+              <SelectedFiles
+                items={items}
+                isConverting={isConverting}
+                galleryRef={galleryRef}
+                onRemove={handleRemove}
+              />
             </section>
 
-            <button
-              type="submit"
-              disabled={!items.length || isConverting}
-              className={clsx(
-                "w-full rounded-full bg-brand-500 px-6 py-4 text-lg font-semibold text-white shadow-lg transition",
-                !items.length || isConverting
-                  ? "cursor-not-allowed opacity-60"
-                  : "hover:bg-brand-600 hover:shadow-xl"
-              )}
-            >
-              {isConverting
-                ? `Converting${progress ? ` (${progress.current}/${progress.total})` : ""}`
-                : "Convert to WebP"}
-            </button>
-
-            <footer className="text-center text-xs font-medium text-slate-400">
-              © Webplyzer – Smart image optimization
+            <footer className="text-center text-xs font-medium text-slate-400 dark:text-dark-text-muted opacity-0 animate-fade-in-up-delay-3">
+              © Webplyzer – Smart image optimization /{" "}
+              <Link href="https://manapuraza.com" className="text-brand-500 dark:text-brand-400 hover:underline">
+                ManatoYamashita
+              </Link>
+              {" "}&{" "}
+              <Link href="https://3minute.vercel.app" className="text-brand-500 dark:text-brand-400 hover:underline">
+                SHIN
+              </Link>
             </footer>
           </form>
+
+          {!isUploaderVisible && (
+            <FloatingUploader
+              isVisible
+              isDropActive={isDropActive}
+              onDragOver={handleFloatingDragOver}
+              onDragLeave={handleDropAreaDragLeave}
+              onDrop={handleFloatingDrop}
+              onClickUpload={() => {
+                dropRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+                fileInputRef.current?.click();
+              }}
+            />
+          )}
         </div>
       </div>
+
+      <StickyConvertButton hasItems={hasItems} isConverting={isConverting} progressLabel={progressLabel} />
+
+      {isHelpModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/70 p-4 backdrop-blur-sm"
+          onClick={() => setIsHelpModalOpen(false)}
+        >
+          <div
+            className="relative w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-2xl bg-white dark:bg-dark-bg-secondary shadow-2xl animate-fade-in-up"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 dark:border-dark-border-DEFAULT bg-white dark:bg-dark-bg-secondary px-6 py-4">
+              <h2 className="text-xl font-semibold text-slate-900 dark:text-dark-text-primary">How to Use Webplyzer</h2>
+              <button
+                type="button"
+                onClick={() => setIsHelpModalOpen(false)}
+                className="flex h-8 w-8 items-center justify-center rounded-full text-slate-400 dark:text-dark-text-muted hover:bg-slate-100 dark:hover:bg-dark-bg-tertiary hover:text-slate-600 dark:hover:text-dark-text-secondary transition-colors"
+                aria-label="Close help"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="overflow-y-auto max-h-[calc(90vh-140px)] px-6 py-6 space-y-6">
+              <section>
+                <h3 className="text-lg font-semibold text-slate-800 dark:text-dark-text-primary mb-3">How to Use</h3>
+                <ol className="list-decimal list-inside space-y-2 text-sm text-slate-600 dark:text-dark-text-secondary">
+                  <li>Upload images or videos (up to 25 files)</li>
+                  <li>Drag and drop to reorder files as needed</li>
+                  <li>Specify a base filename (default: &quot;image&quot;)</li>
+                  <li>Click the &quot;Convert&quot; button</li>
+                  <li>Single files download directly; multiple files are zipped</li>
+                </ol>
+              </section>
+
+              <section>
+                <h3 className="text-lg font-semibold text-slate-800 dark:text-dark-text-primary mb-3">Supported Formats</h3>
+                <div className="space-y-3 text-sm">
+                  <div>
+                    <p className="font-semibold text-slate-700 dark:text-dark-text-primary mb-1">Images</p>
+                    <p className="text-slate-600 dark:text-dark-text-secondary">JPG, JPEG, PNG, AVIF, SVG, HEIC, HEIF, TIFF, BMP, GIF</p>
+                  </div>
+                  <div>
+                    <p className="font-semibold text-slate-700 dark:text-dark-text-primary mb-1">Videos</p>
+                    <p className="text-slate-600 dark:text-dark-text-secondary">MP4, MOV, MKV, AVI, WEBM, M4V</p>
+                  </div>
+                </div>
+              </section>
+
+              <section>
+                <h3 className="text-lg font-semibold text-slate-800 dark:text-dark-text-primary mb-3">Specifications</h3>
+                <ul className="space-y-2 text-sm text-slate-600 dark:text-dark-text-secondary">
+                  <li><span className="font-semibold text-slate-700 dark:text-dark-text-primary">Max files:</span> 25 files</li>
+                  <li><span className="font-semibold text-slate-700 dark:text-dark-text-primary">Image output:</span> WebP format (quality 90)</li>
+                  <li><span className="font-semibold text-slate-700 dark:text-dark-text-primary">Video output:</span> WebM format (VP9 + Opus)</li>
+                  <li><span className="font-semibold text-slate-700 dark:text-dark-text-primary">Filename format:</span> {`<base>_<index>.webp`} or {`.webm`}</li>
+                  <li><span className="font-semibold text-slate-700 dark:text-dark-text-primary">HEIC/HEIF support:</span> Converts Apple device photos seamlessly</li>
+                </ul>
+              </section>
+            </div>
+
+            <div className="sticky bottom-0 border-t border-slate-200 dark:border-dark-border-DEFAULT bg-white dark:bg-dark-bg-secondary px-6 py-4">
+              <button
+                type="button"
+                onClick={() => setIsHelpModalOpen(false)}
+                className="w-full rounded-full bg-brand-500 dark:bg-brand-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-brand-600 dark:hover:bg-brand-700"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isDropActive && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-brand-500/10 dark:bg-brand-400/10 backdrop-blur-sm animate-fade-in pointer-events-none">
+          <div className="flex flex-col items-center gap-4 rounded-2xl border-2 border-dashed border-brand-400 dark:border-brand-500 bg-white/90 dark:bg-dark-bg-secondary/90 px-12 py-10 shadow-2xl">
+            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-brand-50 dark:bg-brand-900/30 text-brand-500 dark:text-brand-400">
+              <Upload className="h-10 w-10" aria-hidden="true" />
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold text-brand-600 dark:text-brand-400">
+                Drop files here
+              </p>
+              <p className="mt-2 text-sm text-slate-600 dark:text-dark-text-secondary">
+                Release to upload your images or videos
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
