@@ -32,6 +32,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install sharp with platform-specific binaries
+        run: npm install --include=optional sharp
+
       - name: Lint
         id: lint
         run: npm run lint
