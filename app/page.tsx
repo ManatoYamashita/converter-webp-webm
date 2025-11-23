@@ -5,9 +5,9 @@ import Sortable, { SortableEvent } from "sortablejs";
 import clsx from "clsx";
 import { X } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
 import { AppHeader } from "@/components/AppHeader";
 import { UploadDropzone } from "@/components/UploadDropzone";
-import { FeedbackBanner } from "@/components/FeedbackBanner";
 import { ProgressPanel } from "@/components/ProgressPanel";
 import { SelectedFiles } from "@/components/SelectedFiles";
 import { StickyConvertButton } from "@/components/StickyConvertButton";
@@ -20,13 +20,6 @@ const SUPPORTED_FORMATS_LABEL =
   "JPG / JPEG / PNG / AVIF / SVG / HEIC / HEIF / TIFF / BMP / GIF / MP4 / MOV / MKV / AVI / WEBM / M4V";
 const ACCEPT_TYPES =
   ".jpg,.jpeg,.png,.avif,.svg,.heic,.heif,.tif,.tiff,.bmp,.gif,.mp4,.mov,.mkv,.avi,.webm,.m4v";
-
-type Feedback =
-  | {
-      tone: "success" | "error";
-      text: string;
-    }
-  | null;
 
 function formatFileSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -83,7 +76,6 @@ function resolveErrorMessage(code: string | undefined): string {
 export default function HomePage() {
   const [items, setItems] = useState<FileItem[]>([]);
   const [baseName, setBaseName] = useState("image");
-  const [feedback, setFeedback] = useState<Feedback>(null);
   const [isConverting, setIsConverting] = useState(false);
   const [progress, setProgress] = useState<{ current: number; total: number } | null>(null);
   const [isDropActive, setIsDropActive] = useState(false);
@@ -231,14 +223,11 @@ export default function HomePage() {
     });
 
     if (blockedByLimit) {
-      setFeedback({ tone: "error", text: "Error: You can upload up to 25 files" });
+      toast.error("Error: You can upload up to 25 files");
     } else if (rejectedUnsupported) {
-      setFeedback({
-        tone: "error",
-        text: "Error: Only JPG, JPEG, PNG, AVIF, SVG, HEIC, HEIF, TIFF, BMP, GIF, MP4, MOV, MKV, AVI, WEBM, M4V files are supported.",
-      });
-    } else {
-      setFeedback(null);
+      toast.error(
+        "Error: Only JPG, JPEG, PNG, AVIF, SVG, HEIC, HEIF, TIFF, BMP, GIF, MP4, MOV, MKV, AVI, WEBM, M4V files are supported."
+      );
     }
   };
 
@@ -250,7 +239,7 @@ export default function HomePage() {
       }
       return prev.filter((item) => item.id !== id);
     });
-    setFeedback({ tone: "success", text: "File removed" });
+    toast.success("File removed");
   };
 
   const handleDropAreaDragOver = (event: React.DragEvent) => {
@@ -272,14 +261,13 @@ export default function HomePage() {
     event.preventDefault();
 
     if (!items.length) {
-      setFeedback({ tone: "error", text: "No files selected" });
+      toast.error("No files selected");
       return;
     }
 
     const safeBaseName = sanitizeFilename(baseName);
     setIsConverting(true);
     setProgress({ current: 0, total: items.length });
-    setFeedback(null);
 
     try {
       const converted: Array<{ blob: Blob; name: string }> = [];
@@ -316,16 +304,16 @@ export default function HomePage() {
         await downloadMultiple(converted, `${safeBaseName}_webp.zip`);
       }
 
-      setFeedback({ tone: "success", text: "Conversion completed successfully." });
+      toast.success("Conversion completed successfully.");
       setItems((prev) => {
         prev.forEach((item) => URL.revokeObjectURL(item.previewUrl));
         return [];
       });
     } catch (error) {
       if (error instanceof Error) {
-        setFeedback({ tone: "error", text: error.message });
+        toast.error(error.message);
       } else {
-        setFeedback({ tone: "error", text: "Conversion failed. Please try again." });
+        toast.error("Conversion failed. Please try again.");
       }
   } finally {
     setIsConverting(false);
@@ -398,8 +386,6 @@ export default function HomePage() {
               onDrop={handleDropAreaDrop}
             />
 
-            <FeedbackBanner feedback={feedback} />
-
             {progress && (
               <ProgressPanel
                 progressPercent={progressPercent}
@@ -436,9 +422,9 @@ export default function HomePage() {
               <Link href="https://manapuraza.com" className="text-brand-500 dark:text-brand-400 hover:underline">
                 ManatoYamashita
               </Link>
-              ,{" "}
-              <Link href="https://github.com/3min" className="text-brand-500 dark:text-brand-400 hover:underline">
-                ShihoYamas
+              {" "}&{" "}
+              <Link href="https://3minute.vercel.app" className="text-brand-500 dark:text-brand-400 hover:underline">
+                SHIN
               </Link>
             </footer>
           </form>

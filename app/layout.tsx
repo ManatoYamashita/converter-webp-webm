@@ -1,6 +1,7 @@
 import type React from "react";
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
+import { Toaster } from "sonner";
 import "./globals.css";
 
 const inter = Inter({
@@ -99,7 +100,20 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`dark ${inter.variable}`}>
-      <body className="font-sans antialiased">{children}</body>
+      <body className="font-sans antialiased">
+        {children}
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            classNames: {
+              toast: "dark:bg-dark-bg-secondary dark:text-dark-text-primary dark:border-dark-border-DEFAULT",
+              success: "dark:bg-green-900/20 dark:text-green-400 dark:border-green-700",
+              error: "dark:bg-red-900/20 dark:text-red-400 dark:border-red-700",
+            },
+          }}
+          duration={4000}
+        />
+      </body>
     </html>
   );
 }
