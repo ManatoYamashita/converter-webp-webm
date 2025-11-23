@@ -4,7 +4,7 @@ import { FileItem } from "./types";
 type SelectedFilesProps = {
   items: FileItem[];
   isConverting: boolean;
-  galleryRef: RefObject<HTMLDivElement>;
+  galleryRef: RefObject<HTMLDivElement | null>;
   onRemove: (id: string) => void;
 };
 

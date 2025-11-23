@@ -2,8 +2,8 @@ import clsx from "clsx";
 import { RefObject } from "react";
 
 type UploadDropzoneProps = {
-  dropRef: RefObject<HTMLLabelElement>;
-  fileInputRef: RefObject<HTMLInputElement>;
+  dropRef: RefObject<HTMLLabelElement | null>;
+  fileInputRef: RefObject<HTMLInputElement | null>;
   isDropActive: boolean;
   supportedFormatsLabel: string;
   maxFiles: number;
