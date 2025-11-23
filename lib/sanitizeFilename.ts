@@ -28,3 +28,4 @@ export const ALLOWED_EXTENSIONS = new Set([
   "m4v",
 ]);
 export const MAX_FILES = 25;
+export const MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024;

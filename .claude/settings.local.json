@@ -1,6 +1,39 @@
 {
+  "permissions": {
+    "allow": [
+      "Bash(npm run dev:*)",
+      "Bash(lsof:*)",
+      "Bash(kill:*)",
+      "Bash(curl:*)",
+      "Bash(pkill:*)",
+      "Bash(git checkout:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(npm run build:*)",
+      "Read(//Users/shin/Library/Application Support/Claude/**)",
+      "Bash(npm run lint)",
+      "Bash(git log:*)",
+      "Bash(git pull:*)",
+      "Bash(git merge:*)",
+      "Bash(git branch:*)",
+      "Bash(npm install:*)",
+      "Bash(xargs kill:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(ffmpeg:*)",
+      "Read(//private/tmp/**)",
+      "Bash(cat:*)",
+      "Read(//tmp/**)",
+      "WebSearch",
+      "WebFetch(domain:ai.google.dev)",
+      "Bash(node test-imagen.js:*)",
+      "Bash(git reset:*)",
+      "Bash(identify:*)",
+      "Bash(sips:*)"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "task-master-ai"
-  ],
-  "enableAllProjectMcpServers": true
+  ]
 }

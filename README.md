@@ -1,4 +1,5 @@
 # Webplyzer
+# ビデオ変換機能も追加したが、くそバグが多すぎて非活性にしておいた。
 
 Next.js App Router 製のバッチ WebP / WebM 変換ツールです。複数の画像（JPG/JPEG/PNG/AVIF/SVG/HEIC/HEIF/TIFF/BMP/GIF）と動画（MP4/MOV/MKV/AVI/WEBM/M4V）を任意順に並べ替えてアップロードし、画像は WebP、動画は WebM へ変換・連番リネーム・ZIP ダウンロードを行えます。UI は Tailwind CSS（ダークモード対応）、ドラッグ&ドロップは SortableJS、開発時には Turbopack を利用しています。
 
