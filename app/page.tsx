@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Sortable, { SortableEvent } from "sortablejs";
-import { X, Upload, Trash2 } from "lucide-react";
+import clsx from "clsx";
+import { X, Upload, Trash2, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { AppHeader } from "@/components/AppHeader";
@@ -124,6 +125,58 @@ export default function HomePage() {
   const sortableRef = useRef<Sortable | null>(null);
   const itemsRef = useRef<FileItem[]>([]);
 
+  const handleFilesAdded = useCallback(
+    (files: FileList | File[]) => {
+      if (isConverting) {
+        toast.info("Conversion in progress. Please wait.");
+        return;
+      }
+      const incoming = Array.from(files);
+      if (!incoming.length) return;
+
+      let blockedByLimit = false;
+      let rejectedUnsupported = false;
+
+      setItems((prev) => {
+        const next = [...prev];
+
+        for (const file of incoming) {
+          if (next.length >= MAX_FILES) {
+            blockedByLimit = true;
+            break;
+          }
+
+          const extension = file.name.split(".").pop()?.toLowerCase() ?? "";
+          if (!ALLOWED_EXTENSIONS.has(extension)) {
+            rejectedUnsupported = true;
+            continue;
+          }
+
+          const id = crypto.randomUUID();
+          const previewUrl = URL.createObjectURL(file);
+
+          next.push({
+            id,
+            file,
+            previewUrl,
+            sizeLabel: formatFileSize(file.size),
+          });
+        }
+
+        return next;
+      });
+
+      if (blockedByLimit) {
+        toast.error("Error: You can upload up to 25 files");
+      } else if (rejectedUnsupported) {
+        toast.error(
+          "Error: Only JPG, JPEG, PNG, AVIF, SVG, HEIC, HEIF, TIFF, BMP, GIF, MP4, MOV, MKV, AVI, WEBM, M4V files are supported."
+        );
+      }
+    },
+    [isConverting]
+  );
+
   useEffect(() => {
     itemsRef.current = items;
   }, [items]);
@@ -174,11 +227,13 @@ export default function HomePage() {
     };
     const handleDragEnter = (event: DragEvent) => {
       event.preventDefault();
+      if (isConverting) return;
       dragDepthRef.current += 1;
       setIsDropActive(true);
     };
     const handleDragLeave = (event: DragEvent) => {
       event.preventDefault();
+      if (isConverting) return;
       dragDepthRef.current = Math.max(0, dragDepthRef.current - 1);
       if (dragDepthRef.current === 0) {
         setIsDropActive(false);
@@ -186,6 +241,7 @@ export default function HomePage() {
     };
     const handleDrop = (event: DragEvent) => {
       event.preventDefault();
+      if (isConverting) return;
       dragDepthRef.current = 0;
       setIsDropActive(false);
       if (event.dataTransfer?.files?.length) {
@@ -204,7 +260,7 @@ export default function HomePage() {
       window.removeEventListener("dragleave", handleDragLeave);
       window.removeEventListener("drop", handleDrop);
     };
-  }, []);
+  }, [handleFilesAdded, isConverting]);
 
   useEffect(() => {
     const target = dropRef.current;
@@ -223,51 +279,6 @@ export default function HomePage() {
       observer.disconnect();
     };
   }, []);
-
-  const handleFilesAdded = (files: FileList | File[]) => {
-    const incoming = Array.from(files);
-    if (!incoming.length) return;
-
-    let blockedByLimit = false;
-    let rejectedUnsupported = false;
-
-    setItems((prev) => {
-      const next = [...prev];
-
-      for (const file of incoming) {
-        if (next.length >= MAX_FILES) {
-          blockedByLimit = true;
-          break;
-        }
-
-        const extension = file.name.split(".").pop()?.toLowerCase() ?? "";
-        if (!ALLOWED_EXTENSIONS.has(extension)) {
-          rejectedUnsupported = true;
-          continue;
-        }
-
-        const id = crypto.randomUUID();
-        const previewUrl = URL.createObjectURL(file);
-
-        next.push({
-          id,
-          file,
-          previewUrl,
-          sizeLabel: formatFileSize(file.size),
-        });
-      }
-
-      return next;
-    });
-
-    if (blockedByLimit) {
-      toast.error("Error: You can upload up to 25 files");
-    } else if (rejectedUnsupported) {
-      toast.error(
-        "Error: Only JPG, JPEG, PNG, AVIF, SVG, HEIC, HEIF, TIFF, BMP, GIF, MP4, MOV, MKV, AVI, WEBM, M4V files are supported."
-      );
-    }
-  };
 
   const handleRemove = (id: string) => {
     setItems((prev) => {
@@ -292,6 +303,7 @@ export default function HomePage() {
 
   const handleDropAreaDragOver = (event: React.DragEvent) => {
     event.preventDefault();
+    if (isConverting) return;
     setIsDropActive(true);
   };
 
@@ -301,12 +313,15 @@ export default function HomePage() {
 
   const handleDropAreaDrop = (event: React.DragEvent) => {
     event.preventDefault();
+    if (isConverting) return;
     setIsDropActive(false);
     handleFilesAdded(event.dataTransfer.files);
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    if (isConverting) return;
 
     if (!items.length) {
       toast.error("No files selected");
@@ -339,17 +354,21 @@ export default function HomePage() {
           throw new Error(message);
         }
 
+        const contentType = response.headers.get("content-type") ?? "";
+        const isVideo = contentType.includes("video/");
         const blob = await response.blob();
+        const ext = isVideo ? "webm" : "webp";
         converted.push({
           blob,
-          name: `${safeBaseName}_${index + 1}.webp`,
+          name: `${safeBaseName}_${index + 1}.${ext}`,
         });
       }
 
       if (converted.length === 1) {
         downloadBlob(converted[0].blob, converted[0].name);
       } else {
-        await downloadMultiple(converted, `${safeBaseName}_webp.zip`);
+        const ext = converted[0].name.endsWith(".webm") ? "webm" : "webp";
+        await downloadMultiple(converted, `${safeBaseName}_${ext}.zip`);
       }
 
       toast.success("Conversion completed successfully.");
@@ -363,10 +382,10 @@ export default function HomePage() {
       } else {
         toast.error("Conversion failed. Please try again.");
       }
-  } finally {
-    setIsConverting(false);
-    setProgress(null);
-  }
+    } finally {
+      setIsConverting(false);
+      setProgress(null);
+    }
   };
 
   const progressPercent =
@@ -381,12 +400,14 @@ export default function HomePage() {
 
   const handleFloatingDragOver = (event: React.DragEvent) => {
     event.preventDefault();
+    if (isConverting) return;
     setIsDropActive(true);
     dropRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   };
 
   const handleFloatingDrop = (event: React.DragEvent) => {
     event.preventDefault();
+    if (isConverting) return;
     setIsDropActive(false);
     handleFilesAdded(event.dataTransfer.files);
   };
@@ -414,6 +435,7 @@ export default function HomePage() {
                   onChange={(event) => setBaseName(event.target.value)}
                   placeholder="e.g. product-image"
                   className="w-full rounded-2xl border border-slate-200 dark:border-dark-border-DEFAULT bg-white dark:bg-dark-bg-tertiary px-4 py-3 text-base font-medium text-slate-800 dark:text-dark-text-primary outline-none transition focus:border-brand-400 dark:focus:border-brand-500 focus:shadow-[0_0_0_4px_rgba(33,150,243,0.12)] dark:focus:shadow-[0_0_0_4px_rgba(33,150,243,0.2)] placeholder:text-slate-400 dark:placeholder:text-dark-text-muted"
+                  disabled={isConverting}
                   onKeyDown={(event) => {
                     if (event.key === "Enter" && !hasItems) {
                       event.preventDefault();
@@ -427,18 +449,28 @@ export default function HomePage() {
                     if (hasItems) return;
                     fileInputRef.current?.click();
                   }}
-                  className="w-full sm:w-auto sm:shrink-0 rounded-2xl border border-brand-200 dark:border-brand-600 bg-white dark:bg-dark-bg-tertiary px-4 py-3 text-sm font-semibold text-brand-600 dark:text-brand-400 transition hover:border-brand-400 dark:hover:border-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/20"
+                  disabled={isConverting}
+                  className="w-full sm:w-auto sm:shrink-0 rounded-2xl border border-brand-200 dark:border-brand-600 bg-white dark:bg-dark-bg-tertiary px-4 py-3 text-sm font-semibold text-brand-600 dark:text-brand-400 transition hover:border-brand-400 dark:hover:border-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/20 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  {hasItems ? "Convert now" : "Choose files"}
+                  <span className="flex items-center justify-center gap-2">
+                    {hasItems && isConverting && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
+                    {hasItems ? "Convert now" : "Choose files"}
+                  </span>
                 </button>
               </div>
             </label>
 
-            <div className={hasItems ? "transition-all duration-200" : "transition-all duration-200"} style={hasItems ? { height: "60%", minHeight: "140px" } : undefined}>
+            <div
+              className={clsx(
+                "transition-all duration-200",
+                hasItems && "h-1/2 min-h-[140px]"
+              )}
+            >
               <UploadDropzone
                 dropRef={dropRef}
                 fileInputRef={fileInputRef}
                 isDropActive={isDropActive}
+                isConverting={isConverting}
                 supportedFormatsLabel={SUPPORTED_FORMATS_LABEL}
                 maxFiles={MAX_FILES}
                 accept={ACCEPT_TYPES}
@@ -508,6 +540,7 @@ export default function HomePage() {
             <FloatingUploader
               isVisible
               isDropActive={isDropActive}
+              isConverting={isConverting}
               onDragOver={handleFloatingDragOver}
               onDragLeave={handleDropAreaDragLeave}
               onDrop={handleFloatingDrop}

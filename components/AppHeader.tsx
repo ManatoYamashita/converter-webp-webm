@@ -1,4 +1,5 @@
-import { CloudUpload, HelpCircle } from "lucide-react";
+import Image from "next/image";
+import { HelpCircle } from "lucide-react";
 
 type AppHeaderProps = {
   onHelpClick: () => void;
@@ -7,8 +8,8 @@ type AppHeaderProps = {
 export function AppHeader({ onHelpClick }: AppHeaderProps) {
   return (
     <header className="flex flex-col items-center text-center">
-      <span className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-dark-bg-tertiary text-brand-500 dark:text-brand-400">
-        <CloudUpload className="h-6 w-6" aria-hidden="true" />
+      <span className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-dark-bg-tertiary">
+        <Image src="/favicon.webp" alt="" width={24} height={24} className="h-6 w-6" />
       </span>
       <h1 className="mt-4 text-2xl font-semibold text-slate-900 dark:text-dark-text-primary sm:text-3xl">
         Webplyzer - Batch WebP Converter

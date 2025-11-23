@@ -9,18 +9,19 @@ Webplyzer は Next.js App Router + TypeScript で構築された WebP / WebM 変
 - **モダンなUX**: ダークモードを標準搭載し、目に優しく洗練されたインターフェースを実現。
 
 ## 3. システム構成
-- **フレームワーク**: Next.js App Router（`app/` ディレクトリ構成）
+- **フレームワーク**: Next.js 16.0.3 (stable) App Router（`app/` ディレクトリ構成）
 - **言語**: TypeScript（strict 設定）
-- **UI**: React 19 RC + Tailwind CSS（ダークモード対応）、ドラッグ&ドロップは `sortablejs`
+- **UI**: React 19.2.0 (stable) + Tailwind CSS（ダークモード対応）、ドラッグ&ドロップは `sortablejs`、Toast 通知は `sonner`
+- **コンポーネント**: 6つの UI コンポーネント（AppHeader, UploadDropzone, SelectedFiles, ProgressPanel, StickyConvertButton, FloatingUploader）に分割済み
 - **API**: `app/api/convert/route.ts` に実装した Node Runtime API。Web 標準 `Response` でバイナリを返却
-- **バンドラー**: Turbopack（開発時 `next dev --turbo`）/ Next.js 標準ビルド（本番 `next build`）
+- **バンドラー**: Turbopack（Next.js 16 から組み込み済み）
 - **画像/動画変換**:
   - HEIC/HEIF: `heic-convert` で JPEG に変換（品質 1 = 最高品質）後、`sharp` で WebP（品質 90、`rotate()` で EXIF 補正）
   - JPG/JPEG/PNG/AVIF/SVG/TIFF/BMP/GIF: `sharp` で WebP（品質 90、アニメーション対応）
-  - 動画: `ffmpeg`（`ffmpeg-static` + `fluent-ffmpeg`）で VP9 + Opus の WebM へ変換
-- **ZIP 生成**: クライアント側で `jszip` を動的インポートして生成
-- **ユーティリティ**: `lib/sanitizeFilename.ts` にファイル名サニタイズ・制約定義
-- **型定義**: `heic-convert.d.ts` に `heic-convert` パッケージの型定義（公式型定義が存在しないため手動作成）
+  - 動画: `ffmpeg`（PATH 上の `ffmpeg` または `FFMPEG_PATH` 指定のバイナリ） + `fluent-ffmpeg` で VP9 + Opus の WebM へ変換
+- **ZIP 生成**: サーバーサイドで `jszip` を使用して生成
+- **ユーティリティ**: `lib/sanitizeFilename.ts` にファイル名サニタイズ・制約定義（MAX_FILES, MAX_FILE_SIZE_BYTES, ALLOWED_EXTENSIONS）
+- **型定義**: `types/ffmpeg-installer.d.ts` に `@ffmpeg-installer/ffmpeg` パッケージの型定義
 
 ## 4. 機能要件
 ### 4.1 アップロード & 並べ替え
@@ -38,7 +39,7 @@ Webplyzer は Next.js App Router + TypeScript で構築された WebP / WebM 変
 ### 4.3 変換処理
 - クライアントは各ファイルごとに `POST /api/convert` へ `FormData` を送信（`base_name`, `file_index`, `files`）。ファイルごとに逐次リクエストし、順序を維持
 - API はバリデーション（拡張子、件数）を行い、以下のフローで変換:
-  1. **動画 (`mp4`, `mov`, `mkv`, `avi`, `webm`, `m4v`)**: `ffmpeg` で VP9（libvpx-vp9）+ Opus に再エンコードし WebM を生成
+  1. **動画 (`mp4`, `mov`, `mkv`, `avi`, `webm`, `m4v`)**: `ffmpeg` で VP9（libvpx-vp9）+ Opus に再エンコードし WebM を生成（MIME タイプ `video/*` でも動画判定）
   2. **画像 (HEIC/HEIF)**: `heic-convert` で JPEG（品質 1）へ変換 → `sharp` で WebP（品質 90、`rotate()` で EXIF 補正、animated 有効）
   3. **画像 (その他)**: `sharp` で WebP（品質 90、animated 有効）
 - 単一ファイル: WebP または WebM をバイナリ返却
@@ -47,26 +48,36 @@ Webplyzer は Next.js App Router + TypeScript で構築された WebP / WebM 変
 
 ### 4.4 進捗 & メッセージ
 - 変換中は進捗バーと `(現在/総数)` を表示し、キャンセルは不可
-- 成功時・失敗時のフィードバックをカード下部に表示。すべて英語で統一
+- **Toast 通知システム**: `sonner` ライブラリを使用し、成功/エラーメッセージを画面右上（top-right）に表示
+  - 4秒後に自動消滅（`duration: 4000`）
+  - ダークモード対応のカスタムスタイル適用
+  - Layout Shift を防止するために固定位置（fixed positioning）を採用
+  - 使用例: `toast.success("Conversion completed")`, `toast.error("Error: File too large")`
 
 ### 4.5 UI・UX
 - **ダークモード**: Tailwind CSS のクラスベースダークモードを標準搭載。`<html class="dark">` により常時ダークテーマを適用
 - **カラーパレット**:
   - ブランドカラー: ブルー系（`brand-*`）
   - ダークモード専用: `dark.bg.primary/secondary/tertiary`, `dark.text.primary/secondary/muted`, `dark.border.light/DEFAULT`
+- **Toast 通知**: 画面右上に表示され、成功/エラーを視覚的に区別（緑/赤）
 - **中央集中型レイアウト**: アップロードエリアを画面中央に大きく配置し、ファーストビューで操作の起点を明確化
+- **コンポーネント化**: UI を 6つのコンポーネントに分割し、保守性と再利用性を向上
 - **言語**: 英語のみ対応（`lang="en"`）。多言語切り替え機能は非搭載
 
 ## 5. 制約・バリデーション
-- `MAX_FILES = 25`。超過時は `too_many_files` エラー
+- **`MAX_FILES = 25`**: 超過時は `too_many_files` エラー（Toast 表示）
   - **根拠**: パフォーマンス・サーバーリソース・ユーザビリティのバランスを考慮した上限値
   - **パフォーマンス**: クライアント側では各ファイルの `URL.createObjectURL` によるメモリ消費、サーバー側では `sharp` による変換処理時間が件数に比例して増加。また、各ファイルごとに個別の API リクエストを送信するため、ネットワーク負荷も増大する
   - **サーバーリソース**: Vercel Serverless Functions の `maxDuration = 60` 秒制限を考慮。25件でも1件あたり平均2秒超でタイムアウトのリスクがあるため、上限を設定
   - **ユーザビリティ**: UI 上でサムネイルを表示・操作する際の実用的な上限として設定
+- **`MAX_FILE_SIZE_BYTES = 20MB (20 * 1024 * 1024)`**: 個別ファイルサイズ上限。超過時は Toast エラー
+  - **根拠**: メモリ制約とタイムアウト防止
+  - **メモリ制約**: Vercel Serverless Functions のメモリ制限（1024MB）を考慮。HEIC変換は2段階処理（HEIC→JPEG→WebP）でメモリを多く消費するため、個別ファイルサイズを制限
+  - **タイムアウト防止**: 動画変換（ffmpeg）は処理時間が長いため、20MB 上限により 60秒以内の変換を担保
+  - **実装**: クライアント側で事前チェック、サーバー側でも検証（二重チェック）
 - 危険文字（`<>:"/\|?*` など）はファイル名から除去。空文字は `image`
-- 未対応フォーマットは 400 `unsupported_file` を返却。特に PDF/EPS、RAW 系（DNG/CR2/NEF/ARW など）、JP2/JXR/JXL、EXR/HDR は非対応
-- 想定最大リクエストサイズは 100MB（各環境でリバースプロキシ等の制限に留意）
-- Vercel Serverless の `maxDuration = 60` 秒を考慮。長尺・高解像度動画の WebM 変換ではタイムアウトの可能性があるため、動画サイズに注意
+- 未対応フォーマットは 400 `unsupported_file` を返却（Toast 表示）。特に PDF/EPS、RAW 系（DNG/CR2/NEF/ARW など）、JP2/JXR/JXL、EXR/HDR は非対応
+- Vercel Serverless の `maxDuration = 60` 秒を考慮。長尺・高解像度動画の WebM 変換ではタイムアウトの可能性があるため、20MB 上限を設けている
 
 ## 6. 非機能要件
 - **パフォーマンス**: 変換は同期処理。大量アクセス時は Vercel の Serverless Functions（Node runtime）を水平スケールで処理
@@ -75,10 +86,10 @@ Webplyzer は Next.js App Router + TypeScript で構築された WebP / WebM 変
 - **アクセシビリティ**: 主要ボタンはキーボード操作対応。進捗文言はスクリーンリーダーで読めるようテキスト表示
 
 ## 7. 運用・デプロイ
-- ローカル開発は `npm run dev` で `http://localhost:3000` を起動
+- ローカル開発は `npm run dev` で `http://localhost:3000` を起動（Turbopack は Next.js 16 から組み込み済み）
 - ビルド/デプロイは `npm run build` → `npm run start`。Vercel では `npm run build` が自動実行され、Node ランタイムで API が動作
-- canary リリースを利用しているため、依存アップデート時は CI で `npm install` → `npm run lint` → `npm run build` を必ず回す
-- Next.js 15 canary は Node.js 18.18 以上が必須。`.nvmrc` を利用しローカル環境のバージョン差異を防ぐ。
+- Next.js 16.0.3 (stable) と React 19.2.0 (stable) を使用。Node.js 20.9+ を推奨
+- 依存アップデート時は CI で `npm install` → `npm run lint` (eslint .) → `npm run build` を必ず回す
 
 ## 8. 今後の拡張案
 - 画像品質・画質調整スライダーの追加（`sharp` オプション expose）
