@@ -2,8 +2,11 @@ name: Feature Branch CI
 
 on:
   push:
-    branches:
-      - "feature/**"
+    branches-ignore:
+      - prod
+      - main
+      - "renovate/**"
+      - "dependabot/**"
 
 permissions:
   contents: read
