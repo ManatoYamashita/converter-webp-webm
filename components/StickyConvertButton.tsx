@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import { Loader2 } from "lucide-react";
 
 export type StickyConvertButtonProps = {
   hasItems: boolean;
@@ -21,7 +22,10 @@ export function StickyConvertButton({ hasItems, isConverting, progressLabel }: S
             : "hover:bg-brand-600 dark:hover:bg-brand-700 hover:shadow-xl dark:hover:shadow-lg"
         )}
       >
-        {progressLabel}
+        <span className="flex items-center justify-center gap-2">
+          {isConverting && <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />}
+          {progressLabel}
+        </span>
       </button>
     </div>
   );
