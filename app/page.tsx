@@ -6,6 +6,8 @@ import clsx from "clsx";
 import { ALLOWED_EXTENSIONS, MAX_FILES, sanitizeFilename } from "@/lib/sanitizeFilename";
 
 const SITE_URL = "https://webplyzer.app";
+const SUPPORTED_FORMATS_LABEL =
+  "JPG / JPEG / PNG / AVIF / SVG / HEIC / HEIF / TIFF / BMP / GIF";
 
 type FileItem = {
   id: string;
@@ -67,7 +69,7 @@ function resolveErrorMessage(code: string | undefined): string {
     case "no_valid_files":
       return "Conversion failed. Please try again.";
     case "unsupported_file":
-      return "Only JPG, JPEG, PNG, SVG, HEIC files are supported.";
+      return "Only JPG, JPEG, PNG, AVIF, SVG, HEIC, HEIF, TIFF, BMP, GIF files are supported.";
     default:
       return "Conversion failed. Please try again.";
   }
@@ -225,7 +227,10 @@ export default function HomePage() {
     if (blockedByLimit) {
       setFeedback({ tone: "error", text: "Error: You can upload up to 25 files" });
     } else if (rejectedUnsupported) {
-      setFeedback({ tone: "error", text: "Error: Only JPG, JPEG, PNG, SVG, HEIC files are supported." });
+      setFeedback({
+        tone: "error",
+        text: "Error: Only JPG, JPEG, PNG, AVIF, SVG, HEIC, HEIF, TIFF, BMP, GIF files are supported.",
+      });
     } else {
       setFeedback(null);
     }
@@ -407,14 +412,14 @@ export default function HomePage() {
                   Select or drag & drop images
                 </span>
                 <p className="text-xs text-slate-500 dark:text-dark-text-secondary">
-                  JPG / JPEG / PNG / SVG / HEIC · max: {MAX_FILES}
+                  {SUPPORTED_FORMATS_LABEL} · max: {MAX_FILES}
                 </p>
               </div>
               <input
                 ref={fileInputRef}
                 id="fileInput"
                 type="file"
-                accept=".jpg,.jpeg,.png,.svg,.heic,.heif"
+                accept=".jpg,.jpeg,.png,.avif,.svg,.heic,.heif,.tif,.tiff,.bmp,.gif"
                 multiple
                 className="hidden"
                 onChange={(event) => {

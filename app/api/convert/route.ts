@@ -34,7 +34,7 @@ export async function POST(req: Request) {
       const extension = getExtension(file.name);
 
       if (!ALLOWED_EXTENSIONS.has(extension)) {
-        continue;
+        return Response.json({ error: "unsupported_file" }, { status: 400 });
       }
 
       const arrayBuffer = await file.arrayBuffer();
@@ -50,9 +50,9 @@ export async function POST(req: Request) {
         inputBuffer = Buffer.from(jpegBuffer);
       }
 
-      const webpBuffer = await sharp(inputBuffer, { failOn: "none" })
+      const webpBuffer = await sharp(inputBuffer, { failOn: "none", animated: true })
         .rotate()
-        .webp({ quality: 90 })
+        .webp({ quality: 90, effort: 4, smartSubsample: true, nearLossless: false, alphaQuality: 90, animated: true })
         .toBuffer();
 
       const ordinal =
