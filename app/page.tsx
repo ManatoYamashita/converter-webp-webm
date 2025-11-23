@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Sortable, { SortableEvent } from "sortablejs";
 import clsx from "clsx";
-import { CloudUpload, Upload } from "lucide-react";
+import { CloudUpload, Upload, HelpCircle, X } from "lucide-react";
 import { ALLOWED_EXTENSIONS, MAX_FILES, sanitizeFilename } from "@/lib/sanitizeFilename";
 
 const SITE_URL = "https://webplyzer.app";
@@ -84,6 +84,7 @@ export default function HomePage() {
   const [progress, setProgress] = useState<{ current: number; total: number } | null>(null);
   const [isDropActive, setIsDropActive] = useState(false);
   const [isUploaderVisible, setIsUploaderVisible] = useState(true);
+  const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
   const structuredData = [
     {
       "@context": "https://schema.org",
@@ -353,7 +354,17 @@ export default function HomePage() {
               <CloudUpload className="h-6 w-6" aria-hidden="true" />
             </span>
             <h1 className="mt-4 text-2xl font-semibold text-slate-900 dark:text-dark-text-primary sm:text-3xl">Webplyzer - Batch WebP Converter</h1>
-            <p className="mt-2 text-sm text-slate-500 dark:text-dark-text-secondary">Convert your images to WebP format</p>
+            <div className="mt-2 flex items-center gap-2">
+              <p className="text-sm text-slate-500 dark:text-dark-text-secondary">Convert your images to WebP format</p>
+              <button
+                type="button"
+                onClick={() => setIsHelpModalOpen(true)}
+                className="flex items-center justify-center text-slate-400 dark:text-dark-text-muted hover:text-brand-500 dark:hover:text-brand-400 transition-colors"
+                aria-label="Show help"
+              >
+                <HelpCircle className="h-4 w-4" />
+              </button>
+            </div>
           </header>
 
           <form className="flex flex-col gap-8" onSubmit={handleSubmit}>
@@ -594,6 +605,78 @@ export default function HomePage() {
           )}
         </div>
       </div>
+
+      {isHelpModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/70 p-4 backdrop-blur-sm"
+          onClick={() => setIsHelpModalOpen(false)}
+        >
+          <div
+            className="relative w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-2xl bg-white dark:bg-dark-bg-secondary shadow-2xl animate-fade-in-up"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 dark:border-dark-border-DEFAULT bg-white dark:bg-dark-bg-secondary px-6 py-4">
+              <h2 className="text-xl font-semibold text-slate-900 dark:text-dark-text-primary">How to Use Webplyzer</h2>
+              <button
+                type="button"
+                onClick={() => setIsHelpModalOpen(false)}
+                className="flex h-8 w-8 items-center justify-center rounded-full text-slate-400 dark:text-dark-text-muted hover:bg-slate-100 dark:hover:bg-dark-bg-tertiary hover:text-slate-600 dark:hover:text-dark-text-secondary transition-colors"
+                aria-label="Close help"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="overflow-y-auto max-h-[calc(90vh-140px)] px-6 py-6 space-y-6">
+              <section>
+                <h3 className="text-lg font-semibold text-slate-800 dark:text-dark-text-primary mb-3">How to Use</h3>
+                <ol className="list-decimal list-inside space-y-2 text-sm text-slate-600 dark:text-dark-text-secondary">
+                  <li>Upload images or videos (up to 25 files)</li>
+                  <li>Drag and drop to reorder files as needed</li>
+                  <li>Specify a base filename (default: "image")</li>
+                  <li>Click the "Convert" button</li>
+                  <li>Single files download directly; multiple files are zipped</li>
+                </ol>
+              </section>
+
+              <section>
+                <h3 className="text-lg font-semibold text-slate-800 dark:text-dark-text-primary mb-3">Supported Formats</h3>
+                <div className="space-y-3 text-sm">
+                  <div>
+                    <p className="font-semibold text-slate-700 dark:text-dark-text-primary mb-1">Images</p>
+                    <p className="text-slate-600 dark:text-dark-text-secondary">JPG, JPEG, PNG, AVIF, SVG, HEIC, HEIF, TIFF, BMP, GIF</p>
+                  </div>
+                  <div>
+                    <p className="font-semibold text-slate-700 dark:text-dark-text-primary mb-1">Videos</p>
+                    <p className="text-slate-600 dark:text-dark-text-secondary">MP4, MOV, MKV, AVI, WEBM, M4V</p>
+                  </div>
+                </div>
+              </section>
+
+              <section>
+                <h3 className="text-lg font-semibold text-slate-800 dark:text-dark-text-primary mb-3">Specifications</h3>
+                <ul className="space-y-2 text-sm text-slate-600 dark:text-dark-text-secondary">
+                  <li><span className="font-semibold text-slate-700 dark:text-dark-text-primary">Max files:</span> 25 files</li>
+                  <li><span className="font-semibold text-slate-700 dark:text-dark-text-primary">Image output:</span> WebP format (quality 90)</li>
+                  <li><span className="font-semibold text-slate-700 dark:text-dark-text-primary">Video output:</span> WebM format (VP9 + Opus)</li>
+                  <li><span className="font-semibold text-slate-700 dark:text-dark-text-primary">Filename format:</span> {`<base>_<index>.webp`} or {`.webm`}</li>
+                  <li><span className="font-semibold text-slate-700 dark:text-dark-text-primary">HEIC/HEIF support:</span> Converts Apple device photos seamlessly</li>
+                </ul>
+              </section>
+            </div>
+
+            <div className="sticky bottom-0 border-t border-slate-200 dark:border-dark-border-DEFAULT bg-white dark:bg-dark-bg-secondary px-6 py-4">
+              <button
+                type="button"
+                onClick={() => setIsHelpModalOpen(false)}
+                className="w-full rounded-full bg-brand-500 dark:bg-brand-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-brand-600 dark:hover:bg-brand-700"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
