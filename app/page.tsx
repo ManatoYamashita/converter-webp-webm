@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Sortable, { SortableEvent } from "sortablejs";
-import { X, Upload } from "lucide-react";
+import { X, Upload, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { AppHeader } from "@/components/AppHeader";
@@ -280,6 +280,22 @@ export default function HomePage() {
     toast.success("File removed");
   };
 
+  const handleClearAll = () => {
+    if (items.length === 0) return;
+
+    const confirmed = window.confirm(
+      `Are you sure you want to remove all ${items.length} file${items.length > 1 ? "s" : ""}?`
+    );
+
+    if (!confirmed) return;
+
+    setItems((prev) => {
+      prev.forEach((item) => URL.revokeObjectURL(item.previewUrl));
+      return [];
+    });
+    toast.success("All files removed");
+  };
+
   const handleDropAreaDragOver = (event: React.DragEvent) => {
     event.preventDefault();
     setIsDropActive(true);
@@ -406,18 +422,20 @@ export default function HomePage() {
               />
             </label>
 
-            <UploadDropzone
-              dropRef={dropRef}
-              fileInputRef={fileInputRef}
-              isDropActive={isDropActive}
-              supportedFormatsLabel={SUPPORTED_FORMATS_LABEL}
-              maxFiles={MAX_FILES}
-              accept={ACCEPT_TYPES}
-              onFilesAdded={handleFilesAdded}
-              onDragOver={handleDropAreaDragOver}
-              onDragLeave={handleDropAreaDragLeave}
-              onDrop={handleDropAreaDrop}
-            />
+            <div className={hasItems ? "transition-all duration-200" : "transition-all duration-200"} style={hasItems ? { height: "60%", minHeight: "140px" } : undefined}>
+              <UploadDropzone
+                dropRef={dropRef}
+                fileInputRef={fileInputRef}
+                isDropActive={isDropActive}
+                supportedFormatsLabel={SUPPORTED_FORMATS_LABEL}
+                maxFiles={MAX_FILES}
+                accept={ACCEPT_TYPES}
+                onFilesAdded={handleFilesAdded}
+                onDragOver={handleDropAreaDragOver}
+                onDragLeave={handleDropAreaDragLeave}
+                onDrop={handleDropAreaDrop}
+              />
+            </div>
 
             {progress && (
               <ProgressPanel
@@ -435,9 +453,23 @@ export default function HomePage() {
                   </span>
                   <span className="text-xs text-slate-400 dark:text-dark-text-muted">Drag to change the order</span>
                 </div>
-                <span className="text-sm font-semibold text-brand-600 dark:text-brand-400">
-                  {items.length} items / max {MAX_FILES}
-                </span>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-semibold text-brand-600 dark:text-brand-400">
+                    {items.length} items / max {MAX_FILES}
+                  </span>
+                  {items.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleClearAll}
+                      disabled={isConverting}
+                      className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-red-600 dark:text-red-400 transition hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                      aria-label="Clear all files"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+                      Clear all
+                    </button>
+                  )}
+                </div>
               </div>
 
               <SelectedFiles
