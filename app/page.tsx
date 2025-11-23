@@ -438,7 +438,12 @@ export default function HomePage() {
               </div>
             </label>
 
-            <div className={hasItems ? "transition-all duration-200" : "transition-all duration-200"} style={hasItems ? { height: "60%", minHeight: "140px" } : undefined}>
+            <div
+              className={clsx(
+                "transition-all duration-200",
+                hasItems && "h-[60%] min-h-[140px]"
+              )}
+            >
               <UploadDropzone
                 dropRef={dropRef}
                 fileInputRef={fileInputRef}
