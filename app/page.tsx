@@ -7,7 +7,7 @@ import { ALLOWED_EXTENSIONS, MAX_FILES, sanitizeFilename } from "@/lib/sanitizeF
 
 const SITE_URL = "https://webplyzer.app";
 const SUPPORTED_FORMATS_LABEL =
-  "JPG / JPEG / PNG / AVIF / SVG / HEIC / HEIF / TIFF / BMP / GIF";
+  "JPG / JPEG / PNG / AVIF / SVG / HEIC / HEIF / TIFF / BMP / GIF / MP4 / MOV / MKV / AVI / WEBM / M4V";
 
 type FileItem = {
   id: string;
@@ -69,7 +69,7 @@ function resolveErrorMessage(code: string | undefined): string {
     case "no_valid_files":
       return "Conversion failed. Please try again.";
     case "unsupported_file":
-      return "Only JPG, JPEG, PNG, AVIF, SVG, HEIC, HEIF, TIFF, BMP, GIF files are supported.";
+      return "Only JPG, JPEG, PNG, AVIF, SVG, HEIC, HEIF, TIFF, BMP, GIF, MP4, MOV, MKV, AVI, WEBM, M4V files are supported.";
     default:
       return "Conversion failed. Please try again.";
   }
@@ -229,7 +229,7 @@ export default function HomePage() {
     } else if (rejectedUnsupported) {
       setFeedback({
         tone: "error",
-        text: "Error: Only JPG, JPEG, PNG, AVIF, SVG, HEIC, HEIF, TIFF, BMP, GIF files are supported.",
+        text: "Error: Only JPG, JPEG, PNG, AVIF, SVG, HEIC, HEIF, TIFF, BMP, GIF, MP4, MOV, MKV, AVI, WEBM, M4V files are supported.",
       });
     } else {
       setFeedback(null);
@@ -341,13 +341,13 @@ export default function HomePage() {
     hasItems && "pb-32"
       )}
     >
-      <div className="relative w-full max-w-3xl rounded-3xl border border-slate-200 dark:border-dark-border-DEFAULT bg-white dark:bg-dark-bg-secondary shadow-[0_24px_48px_rgba(15,23,42,0.12)] dark:shadow-[0_24px_48px_rgba(0,0,0,0.4)]">
+      <div className="relative w-full max-w-3xl rounded-3xl border border-slate-200 dark:border-dark-border-DEFAULT bg-white dark:bg-dark-bg-secondary shadow-[0_24px_48px_rgba(15,23,42,0.12)] dark:shadow-[0_24px_48px_rgba(0,0,0,0.4)] animate-fade-in-up">
         <div className="flex flex-col gap-8 p-6 sm:p-10">
           <script
             type="application/ld+json"
             dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
           />
-          <header className="flex flex-col items-center text-center">
+          <header className="flex flex-col items-center text-center opacity-0 animate-fade-in-up-delay-1">
             <span className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-dark-bg-tertiary text-brand-500 dark:text-brand-400">
               <svg
                 aria-hidden="true"
@@ -385,7 +385,7 @@ export default function HomePage() {
               onDragLeave={handleDropAreaDragLeave}
               onDrop={handleDropAreaDrop}
               className={clsx(
-                "relative flex min-h-[220px] flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-slate-300 dark:border-dark-border-DEFAULT bg-slate-50/70 dark:bg-dark-bg-tertiary/50 p-8 text-center transition",
+                "relative flex min-h-[220px] flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-slate-300 dark:border-dark-border-DEFAULT bg-slate-50/70 dark:bg-dark-bg-tertiary/50 p-8 text-center transition opacity-0 animate-fade-in-up-delay-2",
                 isDropActive
                   ? "border-brand-400 dark:border-brand-500 bg-brand-50/80 dark:bg-brand-900/20"
                   : "hover:border-brand-400 dark:hover:border-brand-500 hover:bg-white dark:hover:bg-dark-bg-secondary"
@@ -419,7 +419,7 @@ export default function HomePage() {
                 ref={fileInputRef}
                 id="fileInput"
                 type="file"
-                accept=".jpg,.jpeg,.png,.avif,.svg,.heic,.heif,.tif,.tiff,.bmp,.gif"
+                accept=".jpg,.jpeg,.png,.avif,.svg,.heic,.heif,.tif,.tiff,.bmp,.gif,.mp4,.mov,.mkv,.avi,.webm,.m4v"
                 multiple
                 className="hidden"
                 onChange={(event) => {
@@ -465,7 +465,7 @@ export default function HomePage() {
               </div>
             )}
 
-            <section className="space-y-4">
+            <section className="space-y-4 opacity-0 animate-fade-in-up-delay-3">
               <div className="flex items-center justify-between">
                 <div className="flex flex-col items-start gap-1 sm:flex-row sm:items-center sm:gap-3">
                   <span className="text-sm font-semibold text-slate-600 dark:text-dark-text-secondary">Selected files</span>
@@ -554,7 +554,7 @@ export default function HomePage() {
               </button>
             </div>
 
-            <footer className="text-center text-xs font-medium text-slate-400 dark:text-dark-text-muted">
+            <footer className="text-center text-xs font-medium text-slate-400 dark:text-dark-text-muted opacity-0 animate-fade-in-up-delay-3">
               © Webplyzer – Smart image optimization
             </footer>
           </form>

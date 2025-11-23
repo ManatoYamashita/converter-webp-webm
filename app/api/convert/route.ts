@@ -1,6 +1,5 @@
 import JSZip from "jszip";
 import sharp from "sharp";
-import convert from "heic-convert";
 import { ALLOWED_EXTENSIONS, MAX_FILES, sanitizeFilename } from "@/lib/sanitizeFilename";
 
 export const runtime = "nodejs";
@@ -34,25 +33,15 @@ export async function POST(req: Request) {
       const extension = getExtension(file.name);
 
       if (!ALLOWED_EXTENSIONS.has(extension)) {
-        return Response.json({ error: "unsupported_file" }, { status: 400 });
+        continue;
       }
 
       const arrayBuffer = await file.arrayBuffer();
-      let inputBuffer = Buffer.from(arrayBuffer);
+      const inputBuffer = Buffer.from(arrayBuffer);
 
-      // Convert HEIC/HEIF to JPEG first, as sharp doesn't support HEIC natively
-      if (extension === "heic" || extension === "heif") {
-        const jpegBuffer = await convert({
-          buffer: inputBuffer,
-          format: "JPEG",
-          quality: 1,
-        });
-        inputBuffer = Buffer.from(jpegBuffer);
-      }
-
-      const webpBuffer = await sharp(inputBuffer, { failOn: "none", animated: true })
+      const webpBuffer = await sharp(inputBuffer, { failOn: "none" })
         .rotate()
-        .webp({ quality: 90, effort: 4, smartSubsample: true, nearLossless: false, alphaQuality: 90, animated: true })
+        .webp({ quality: 90 })
         .toBuffer();
 
       const ordinal =
