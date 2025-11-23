@@ -125,6 +125,58 @@ export default function HomePage() {
   const sortableRef = useRef<Sortable | null>(null);
   const itemsRef = useRef<FileItem[]>([]);
 
+  const handleFilesAdded = useCallback(
+    (files: FileList | File[]) => {
+      if (isConverting) {
+        toast.info("Conversion in progress. Please wait.");
+        return;
+      }
+      const incoming = Array.from(files);
+      if (!incoming.length) return;
+
+      let blockedByLimit = false;
+      let rejectedUnsupported = false;
+
+      setItems((prev) => {
+        const next = [...prev];
+
+        for (const file of incoming) {
+          if (next.length >= MAX_FILES) {
+            blockedByLimit = true;
+            break;
+          }
+
+          const extension = file.name.split(".").pop()?.toLowerCase() ?? "";
+          if (!ALLOWED_EXTENSIONS.has(extension)) {
+            rejectedUnsupported = true;
+            continue;
+          }
+
+          const id = crypto.randomUUID();
+          const previewUrl = URL.createObjectURL(file);
+
+          next.push({
+            id,
+            file,
+            previewUrl,
+            sizeLabel: formatFileSize(file.size),
+          });
+        }
+
+        return next;
+      });
+
+      if (blockedByLimit) {
+        toast.error("Error: You can upload up to 25 files");
+      } else if (rejectedUnsupported) {
+        toast.error(
+          "Error: Only JPG, JPEG, PNG, AVIF, SVG, HEIC, HEIF, TIFF, BMP, GIF, MP4, MOV, MKV, AVI, WEBM, M4V files are supported."
+        );
+      }
+    },
+    [isConverting]
+  );
+
   useEffect(() => {
     itemsRef.current = items;
   }, [items]);
@@ -227,58 +279,6 @@ export default function HomePage() {
       observer.disconnect();
     };
   }, []);
-
-  const handleFilesAdded = useCallback(
-    (files: FileList | File[]) => {
-      if (isConverting) {
-        toast.info("Conversion in progress. Please wait.");
-        return;
-      }
-      const incoming = Array.from(files);
-      if (!incoming.length) return;
-
-      let blockedByLimit = false;
-      let rejectedUnsupported = false;
-
-      setItems((prev) => {
-        const next = [...prev];
-
-        for (const file of incoming) {
-          if (next.length >= MAX_FILES) {
-            blockedByLimit = true;
-            break;
-          }
-
-          const extension = file.name.split(".").pop()?.toLowerCase() ?? "";
-          if (!ALLOWED_EXTENSIONS.has(extension)) {
-            rejectedUnsupported = true;
-            continue;
-          }
-
-          const id = crypto.randomUUID();
-          const previewUrl = URL.createObjectURL(file);
-
-          next.push({
-            id,
-            file,
-            previewUrl,
-            sizeLabel: formatFileSize(file.size),
-          });
-        }
-
-        return next;
-      });
-
-      if (blockedByLimit) {
-        toast.error("Error: You can upload up to 25 files");
-      } else if (rejectedUnsupported) {
-        toast.error(
-          "Error: Only JPG, JPEG, PNG, AVIF, SVG, HEIC, HEIF, TIFF, BMP, GIF, MP4, MOV, MKV, AVI, WEBM, M4V files are supported."
-        );
-      }
-    },
-    [isConverting]
-  );
 
   const handleRemove = (id: string) => {
     setItems((prev) => {
