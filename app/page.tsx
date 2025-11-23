@@ -3,19 +3,23 @@
 import { useEffect, useRef, useState } from "react";
 import Sortable, { SortableEvent } from "sortablejs";
 import clsx from "clsx";
-import { CloudUpload, Upload, HelpCircle, X } from "lucide-react";
+import { HelpCircle, X } from "lucide-react";
+import Link from "next/link";
+import { AppHeader } from "@/components/AppHeader";
+import { UploadDropzone } from "@/components/UploadDropzone";
+import { FeedbackBanner } from "@/components/FeedbackBanner";
+import { ProgressPanel } from "@/components/ProgressPanel";
+import { SelectedFiles } from "@/components/SelectedFiles";
+import { StickyConvertButton } from "@/components/StickyConvertButton";
+import { FloatingUploader } from "@/components/FloatingUploader";
+import { FileItem } from "@/components/types";
 import { ALLOWED_EXTENSIONS, MAX_FILES, sanitizeFilename } from "@/lib/sanitizeFilename";
 
 const SITE_URL = "https://webplyzer.app";
 const SUPPORTED_FORMATS_LABEL =
   "JPG / JPEG / PNG / AVIF / SVG / HEIC / HEIF / TIFF / BMP / GIF / MP4 / MOV / MKV / AVI / WEBM / M4V";
-
-type FileItem = {
-  id: string;
-  file: File;
-  previewUrl: string;
-  sizeLabel: string;
-};
+const ACCEPT_TYPES =
+  ".jpg,.jpeg,.png,.avif,.svg,.heic,.heif,.tif,.tiff,.bmp,.gif,.mp4,.mov,.mkv,.avi,.webm,.m4v";
 
 type Feedback =
   | {
@@ -92,10 +96,10 @@ export default function HomePage() {
       name: "Webplyzer",
       url: SITE_URL,
       description:
-        "Convert JPG, JPEG, PNG, SVG, HEIC images to WebP with drag-and-drop, reordering, and sequential naming.",
+        "Convert JPG, JPEG, PNG, AVIF, SVG, HEIC images to WebP and MP4, MOV, MKV, AVI, WEBM, M4V to WebM with drag-and-drop, reordering, and sequential naming.",
       potentialAction: {
         "@type": "Action",
-        name: "Convert images to WebP",
+        name: "Convert media to WebP/WebM",
         target: `${SITE_URL}/?action=convert`,
       },
       inLanguage: "en",
@@ -118,7 +122,7 @@ export default function HomePage() {
       },
       url: SITE_URL,
       description:
-        "Batch convert images to WebP, maintain order, and export as ZIP for web performance optimization.",
+        "Batch convert images to WebP and videos to WebM, maintain order, and export as ZIP for web performance optimization.",
     },
   ];
 
@@ -335,12 +339,27 @@ export default function HomePage() {
       : 0;
 
   const hasItems = items.length > 0;
+  const progressLabel = isConverting
+    ? `Converting${progress ? ` (${progress.current}/${progress.total})` : ""}`
+    : "Convert to WebP / WebM";
+
+  const handleFloatingDragOver = (event: React.DragEvent) => {
+    event.preventDefault();
+    setIsDropActive(true);
+    dropRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
+
+  const handleFloatingDrop = (event: React.DragEvent) => {
+    event.preventDefault();
+    setIsDropActive(false);
+    handleFilesAdded(event.dataTransfer.files);
+  };
 
   return (
     <div
       className={clsx(
         "flex min-h-screen items-center justify-center bg-slate-100 dark:bg-dark-bg-primary px-4 py-12",
-    hasItems && "pb-32"
+        hasItems && "pb-32"
       )}
     >
       <div className="relative w-full max-w-3xl rounded-3xl border border-slate-200 dark:border-dark-border-DEFAULT bg-white dark:bg-dark-bg-secondary shadow-[0_24px_48px_rgba(15,23,42,0.12)] dark:shadow-[0_24px_48px_rgba(0,0,0,0.4)] animate-fade-in-up">
@@ -349,13 +368,9 @@ export default function HomePage() {
             type="application/ld+json"
             dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
           />
-          <header className="flex flex-col items-center text-center opacity-0 animate-fade-in-up-delay-1">
-            <span className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-dark-bg-tertiary text-brand-500 dark:text-brand-400">
-              <CloudUpload className="h-6 w-6" aria-hidden="true" />
-            </span>
-            <h1 className="mt-4 text-2xl font-semibold text-slate-900 dark:text-dark-text-primary sm:text-3xl">Webplyzer - Batch WebP Converter</h1>
+          <div className="flex flex-col items-center text-center opacity-0 animate-fade-in-up-delay-1">
+            <AppHeader />
             <div className="mt-2 flex items-center gap-2">
-              <p className="text-sm text-slate-500 dark:text-dark-text-secondary">Convert your images to WebP format</p>
               <button
                 type="button"
                 onClick={() => setIsHelpModalOpen(true)}
@@ -365,11 +380,13 @@ export default function HomePage() {
                 <HelpCircle className="h-4 w-4" />
               </button>
             </div>
-          </header>
+          </div>
 
           <form className="flex flex-col gap-8" onSubmit={handleSubmit}>
             <label className="flex flex-col gap-2 text-left">
-              <span className="text-sm font-semibold text-slate-600 dark:text-dark-text-secondary">Base filename for converted images</span>
+              <span className="text-sm font-semibold text-slate-600 dark:text-dark-text-secondary">
+                Base filename for converted files
+              </span>
               <input
                 value={baseName}
                 onChange={(event) => setBaseName(event.target.value)}
@@ -378,84 +395,35 @@ export default function HomePage() {
               />
             </label>
 
-            <label
-              ref={dropRef}
-              htmlFor="fileInput"
+            <UploadDropzone
+              dropRef={dropRef}
+              fileInputRef={fileInputRef}
+              isDropActive={isDropActive}
+              supportedFormatsLabel={SUPPORTED_FORMATS_LABEL}
+              maxFiles={MAX_FILES}
+              accept={ACCEPT_TYPES}
+              onFilesAdded={handleFilesAdded}
               onDragOver={handleDropAreaDragOver}
               onDragLeave={handleDropAreaDragLeave}
               onDrop={handleDropAreaDrop}
-              className={clsx(
-                "relative flex min-h-[220px] flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-slate-300 dark:border-dark-border-DEFAULT bg-slate-50/70 dark:bg-dark-bg-tertiary/50 p-8 text-center transition opacity-0 animate-fade-in-up-delay-2",
-                isDropActive
-                  ? "border-brand-400 dark:border-brand-500 bg-brand-50/80 dark:bg-brand-900/20"
-                  : "hover:border-brand-400 dark:hover:border-brand-500 hover:bg-white dark:hover:bg-dark-bg-secondary"
-              )}
-            >
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white dark:bg-dark-bg-tertiary text-brand-500 dark:text-brand-400 shadow-sm dark:shadow-none">
-                <Upload className="h-7 w-7" aria-hidden="true" />
-              </div>
-              <div className="space-y-1">
-                <span className="block text-base font-semibold text-slate-700 dark:text-dark-text-primary">
-                  Select or drag & drop images
-                </span>
-                <p className="text-xs text-slate-500 dark:text-dark-text-secondary">
-                  {SUPPORTED_FORMATS_LABEL} · max: {MAX_FILES}
-                </p>
-              </div>
-              <input
-                ref={fileInputRef}
-                id="fileInput"
-                type="file"
-                accept=".jpg,.jpeg,.png,.avif,.svg,.heic,.heif,.tif,.tiff,.bmp,.gif,.mp4,.mov,.mkv,.avi,.webm,.m4v"
-                multiple
-                className="hidden"
-                onChange={(event) => {
-                  if (event.target.files) {
-                    handleFilesAdded(event.target.files);
-                    event.target.value = "";
-                  }
-                }}
-              />
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="rounded-full border border-brand-200 dark:border-brand-600 bg-white dark:bg-dark-bg-tertiary px-5 py-2 text-sm font-semibold text-brand-600 dark:text-brand-400 transition hover:border-brand-400 dark:hover:border-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/20"
-              >
-                Add more
-              </button>
-            </label>
+            />
 
-            {feedback && (
-              <p
-                className={clsx(
-                  "rounded-2xl px-4 py-3 text-sm font-semibold",
-                  feedback.tone === "success"
-                    ? "bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400"
-                    : "bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400"
-                )}
-              >
-                {feedback.text}
-              </p>
-            )}
+            <FeedbackBanner feedback={feedback} />
 
             {progress && (
-              <div className="space-y-2 rounded-2xl border border-slate-200 dark:border-dark-border-DEFAULT bg-slate-50 dark:bg-dark-bg-tertiary p-4">
-                <div className="h-2 rounded-full bg-slate-200 dark:bg-dark-border-DEFAULT">
-                  <div
-                    className="h-2 rounded-full bg-brand-500 dark:bg-brand-400 transition-all"
-                    style={{ width: `${progressPercent}%` }}
-                  />
-                </div>
-                <p className="text-xs font-medium text-slate-500 dark:text-dark-text-secondary">
-                  Converting {progress.current}/{progress.total}
-                </p>
-              </div>
+              <ProgressPanel
+                progressPercent={progressPercent}
+                current={progress.current}
+                total={progress.total}
+              />
             )}
 
             <section className="space-y-4 opacity-0 animate-fade-in-up-delay-3">
               <div className="flex items-center justify-between">
                 <div className="flex flex-col items-start gap-1 sm:flex-row sm:items-center sm:gap-3">
-                  <span className="text-sm font-semibold text-slate-600 dark:text-dark-text-secondary">Selected files</span>
+                  <span className="text-sm font-semibold text-slate-600 dark:text-dark-text-secondary">
+                    Selected files
+                  </span>
                   <span className="text-xs text-slate-400 dark:text-dark-text-muted">Drag to change the order</span>
                 </div>
                 <span className="text-sm font-semibold text-brand-600 dark:text-brand-400">
@@ -463,145 +431,40 @@ export default function HomePage() {
                 </span>
               </div>
 
-              {items.length > 0 ? (
-                <div
-                  ref={galleryRef}
-                  className="flex max-h-80 flex-col gap-3 overflow-y-auto pr-1"
-                >
-                  {items.map((item, index) => (
-                    <div
-                      key={item.id}
-                      data-id={item.id}
-                      className="flex items-center gap-4 rounded-2xl border border-slate-200 dark:border-dark-border-DEFAULT bg-white/80 dark:bg-dark-bg-tertiary/80 p-4 shadow-sm dark:shadow-none transition hover:shadow-md dark:hover:bg-dark-bg-tertiary"
-                    >
-                      <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-xl bg-slate-100 dark:bg-dark-bg-primary">
-                        <img
-                          src={item.previewUrl}
-                          alt={item.file.name}
-                          className="h-full w-full object-cover"
-                          draggable={false}
-                        />
-                      </div>
-                      <div className="flex flex-1 flex-col gap-3">
-                        <div className="flex items-start justify-between gap-3">
-                          <p className="text-sm font-semibold text-slate-800 dark:text-dark-text-primary">{item.file.name}</p>
-                          <button
-                            type="button"
-                            onClick={() => handleRemove(item.id)}
-                            disabled={isConverting}
-                            className="flex h-8 w-8 items-center justify-center rounded-full border border-transparent text-slate-400 dark:text-dark-text-muted transition hover:border-slate-200 dark:hover:border-dark-border-DEFAULT hover:text-slate-600 dark:hover:text-dark-text-secondary disabled:cursor-not-allowed disabled:opacity-40"
-                            aria-label="Remove"
-                          >
-                            ×
-                          </button>
-                        </div>
-                        <div className="flex items-center justify-between text-xs text-slate-500 dark:text-dark-text-secondary">
-                          <span>{item.sizeLabel}</span>
-                          <span className="flex items-center gap-2">
-                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-100 dark:bg-dark-bg-primary text-xs font-semibold text-slate-500 dark:text-dark-text-secondary">
-                              {index + 1}
-                            </span>
-                            <button
-                              type="button"
-                              className="js-drag-handle flex items-center justify-center rounded-full border border-transparent px-3 py-1 text-xs font-semibold text-slate-400 dark:text-dark-text-muted transition hover:border-slate-200 dark:hover:border-dark-border-DEFAULT hover:text-slate-600 dark:hover:text-dark-text-secondary active:cursor-grabbing disabled:cursor-not-allowed"
-                              disabled={isConverting}
-                              aria-label="Drag to change the order"
-                            >
-                              <span aria-hidden="true">⋮⋮</span>
-                            </button>
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="flex min-h-[160px] items-center justify-center rounded-2xl border border-dashed border-slate-200 dark:border-dark-border-DEFAULT bg-slate-50 dark:bg-dark-bg-tertiary text-sm text-slate-400 dark:text-dark-text-muted">
-                  No files selected
-                </div>
-              )}
+              <SelectedFiles
+                items={items}
+                isConverting={isConverting}
+                galleryRef={galleryRef}
+                onRemove={handleRemove}
+              />
             </section>
 
-            <div className={clsx(hasItems && "h-0")}>
-              <button
-                type="submit"
-                disabled={!items.length || isConverting}
-                className={clsx(
-                  hasItems
-                    ? "fixed inset-x-4 bottom-6 z-30 rounded-full bg-brand-500 dark:bg-brand-600 px-6 py-4 text-lg font-semibold text-white shadow-[0_14px_30px_rgba(33,150,243,0.3)] dark:shadow-[0_14px_30px_rgba(33,150,243,0.35)] transition md:left-1/2 md:right-auto md:w-[min(420px,calc(100%-32px))] md:-translate-x-1/2"
-                    : "w-full rounded-full bg-brand-500 dark:bg-brand-600 px-6 py-4 text-lg font-semibold text-white shadow-lg dark:shadow-md transition",
-                  !items.length || isConverting
-                    ? "cursor-not-allowed opacity-60"
-                    : "hover:bg-brand-600 dark:hover:bg-brand-700 hover:shadow-xl dark:hover:shadow-lg"
-                )}
-              >
-                {isConverting
-                  ? `Converting${progress ? ` (${progress.current}/${progress.total})` : ""}`
-                  : "Convert to WebP"}
-              </button>
-            </div>
+            <StickyConvertButton hasItems={hasItems} isConverting={isConverting} progressLabel={progressLabel} />
 
             <footer className="text-center text-xs font-medium text-slate-400 dark:text-dark-text-muted opacity-0 animate-fade-in-up-delay-3">
-              © Webplyzer – Smart image optimization
+              © Webplyzer – Smart image optimization /{" "}
+              <Link href="https://manapuraza.com" className="text-brand-500 dark:text-brand-400 hover:underline">
+                ManatoYamashita
+              </Link>
+              ,{" "}
+              <Link href="https://github.com/3min" className="text-brand-500 dark:text-brand-400 hover:underline">
+                ShihoYamas
+              </Link>
             </footer>
           </form>
+
           {hasItems && !isUploaderVisible && (
-            <div className="pointer-events-auto fixed left-4 right-4 top-4 z-30 md:left-1/2 md:right-auto md:w-[min(420px,calc(100%-32px))] md:-translate-x-1/2">
-              <div
-                className={clsx(
-                  "flex items-center justify-between rounded-2xl border border-slate-200 dark:border-dark-border-DEFAULT bg-white/95 dark:bg-dark-bg-secondary/95 px-4 py-3 shadow-lg dark:shadow-md backdrop-blur transition",
-                  isDropActive && "border-brand-400 dark:border-brand-500 shadow-brand-500/20"
-                )}
-                onDragOver={(event) => {
-                  event.preventDefault();
-                  setIsDropActive(true);
-                  dropRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-                }}
-                onDragLeave={() => {
-                  setIsDropActive(false);
-                }}
-                onDrop={(event) => {
-                  event.preventDefault();
-                  setIsDropActive(false);
-                  handleFilesAdded(event.dataTransfer.files);
-                }}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 dark:bg-dark-bg-tertiary text-brand-500 dark:text-brand-400">
-                    <svg
-                      aria-hidden="true"
-                      className="h-5 w-5"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="1.75"
-                      viewBox="0 0 24 24"
-                    >
-                      <path d="M12 16V4" />
-                      <path d="m8 8 4-4 4 4" />
-                      <path d="M20 16.5a4 4 0 0 0-.9-7.9 5 5 0 0 0-9.7-1.1A3.5 3.5 0 0 0 4 10.5a3.5 3.5 0 0 0 1 6.9Z" />
-                    </svg>
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-sm font-semibold text-slate-700 dark:text-dark-text-primary">
-                      Drop files to add
-                    </span>
-                    <span className="text-xs text-slate-500 dark:text-dark-text-secondary">Scroll-free upload</span>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    dropRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-                    fileInputRef.current?.click();
-                  }}
-                  className="rounded-full border border-slate-200 dark:border-dark-border-DEFAULT px-3 py-1 text-xs font-semibold text-slate-600 dark:text-dark-text-secondary transition hover:border-brand-300 dark:hover:border-brand-500 hover:text-brand-600 dark:hover:text-brand-400"
-                >
-                  Upload
-                </button>
-              </div>
-            </div>
+            <FloatingUploader
+              isVisible
+              isDropActive={isDropActive}
+              onDragOver={handleFloatingDragOver}
+              onDragLeave={handleDropAreaDragLeave}
+              onDrop={handleFloatingDrop}
+              onClickUpload={() => {
+                dropRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+                fileInputRef.current?.click();
+              }}
+            />
           )}
         </div>
       </div>
