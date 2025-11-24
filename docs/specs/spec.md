@@ -88,7 +88,7 @@ Converter WebP/WebM は Next.js App Router + TypeScript で構築された WebP 
 ## 7. 運用・デプロイ
 - ローカル開発は `npm run dev` で `http://localhost:3000` を起動（Turbopack は Next.js 16 から組み込み済み）
 - ビルド/デプロイは `npm run build` → `npm run start`。Vercel では `npm run build` が自動実行され、Node ランタイムで API が動作
-- Next.js 16.0.3 (stable) と React 19.2.0 (stable) を使用。Node.js 20.9+ を推奨
+- Next.js 16.0.3 (stable) と React 19.2.0 (stable) を使用。Node.js 20.9.0以上が必須
 - 依存アップデート時は CI で `npm install` → `npm run lint` (eslint .) → `npm run build` を必ず回す
 
 ## 8. 今後の拡張案
