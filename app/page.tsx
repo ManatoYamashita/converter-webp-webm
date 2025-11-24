@@ -553,7 +553,17 @@ export default function HomePage() {
         </div>
       </div>
 
-      <StickyConvertButton hasItems={hasItems} isConverting={isConverting} progressLabel={progressLabel} />
+      <StickyConvertButton 
+        hasItems={hasItems} 
+        isConverting={isConverting} 
+        progressLabel={progressLabel}
+        onConvert={() => {
+          if (!isConverting && items.length > 0) {
+            const form = document.querySelector('form');
+            form?.requestSubmit();
+          }
+        }}
+      />
 
       {isHelpModalOpen && (
         <div
