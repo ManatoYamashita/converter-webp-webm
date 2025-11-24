@@ -14,6 +14,7 @@ docs/
 │  └─ design-system.md            ... デザインシステム包括ガイド
 └─ dev/
    ├─ branch.md                   ... ブランチ戦略・レビュー手順
+   ├─ ci-lighthouse.md            ... Lighthouse CI 設定と NO_FCP エラー対策
    ├─ turbopack-support.md        ... Turbopack サポート状況と移行ガイド
    ├─ next16-upgrade.md           ... Next.js 16 アップグレードサマリー
    └─ vercel-sharp-deployment.md  ... Vercel sharp デプロイエラー解決ガイド
@@ -23,6 +24,7 @@ docs/
 - `docs/specs/spec.md`: Next.js 16 + Node Runtime 構成、画像 WebP / 動画 WebM 変換（Sharp + heic-convert + ffmpeg）、対応フォーマットと制約値を記載。
 - `docs/design/design-system.md`: カラーパレット、タイポグラフィ、UIコンポーネントパターン、ダークモード実装などデザインシステム全体を網羅。
 - `docs/dev/branch.md`: `main` ブランチ保護方針、ブランチ命名、コミット/PR テンプレートを定義。
+- `docs/dev/ci-lighthouse.md`: GitHub Actions の Lighthouse CI 設定と NO_FCP（First Contentful Paint）エラーのトラブルシューティング。wait-on 設定強化、Next.js hydration 待機、Chrome flags、パフォーマンス閾値を記載（2025-01-24追加）。
 - `docs/dev/turbopack-support.md`: Turbopack のサポート状況と本番ビルドへの移行ガイド。
 - `docs/dev/next16-upgrade.md`: Next.js 16 および React 19 へのアップグレード詳細記録（2025-11-22実施）。
 - `docs/dev/vercel-sharp-deployment.md`: Vercel デプロイ時の sharp モジュールエラー解決プロセス。serverExternalPackages 設定、postinstall スクリプト、クロスプラットフォーム依存関係の問題と解決方法を詳述（2025-11-24解決）。
@@ -43,5 +45,5 @@ docs/
 
 ---
 
-**最終更新日**: 2025-11-24
-**更新内容**: Vercel sharp デプロイ問題のドキュメント追加 (`docs/dev/vercel-sharp-deployment.md`)。serverExternalPackages、postinstall、クロスプラットフォーム依存関係の解決方法を記録。
+**最終更新日**: 2025-01-24
+**更新内容**: Lighthouse CI の NO_FCP エラー対策ドキュメント追加 (`docs/dev/ci-lighthouse.md`)。GitHub Actions ワークフロー改善、wait-on 設定強化、Next.js hydration 待機処理、Chrome flags 設定、パフォーマンス閾値定義を記録。

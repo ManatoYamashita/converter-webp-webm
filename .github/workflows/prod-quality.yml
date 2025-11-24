@@ -32,11 +32,38 @@ jobs:
           npm run start -- --hostname 0.0.0.0 --port 3000 >/tmp/next.log 2>&1 &
           echo $! > /tmp/next.pid
 
-      - name: Wait for server
-        run: npx wait-on@7.0.1 http://localhost:3000
+      - name: Wait for server (HTTP ready)
+        run: npx wait-on@7.0.1 http://localhost:3000 --timeout 60000 --interval 1000 --verbose
+
+      - name: Wait for Next.js hydration
+        run: |
+          echo "Waiting for Next.js to fully initialize and hydrate..."
+          sleep 10
+          echo "Checking server logs:"
+          tail -n 50 /tmp/next.log || true
+
+      - name: Verify page content
+        run: |
+          echo "Fetching page content to verify rendering..."
+          CONTENT=$(curl -s http://localhost:3000 | head -n 100)
+          echo "$CONTENT"
+          if echo "$CONTENT" | grep -q "Converter WebP/WebM"; then
+            echo "Page content verified successfully"
+          else
+            echo "ERROR: Page content not found!"
+            tail -n 100 /tmp/next.log || true
+            exit 1
+          fi
 
       - name: Lighthouse audit
-        run: npx @lhci/cli@0.13.0 autorun --collect.url=http://localhost:3000 --collect.numberOfRuns=1 --upload.target=filesystem --assert.preset=lighthouse:recommended
+        run: |
+          npx @lhci/cli@0.13.0 autorun \
+            --collect.url=http://localhost:3000 \
+            --collect.numberOfRuns=1 \
+            --collect.settings.maxWaitForLoad=90000 \
+            --collect.settings.chromeFlags="--no-sandbox --disable-dev-shm-usage --disable-gpu --disable-software-rasterizer" \
+            --upload.target=filesystem \
+            --assert.preset=lighthouse:recommended
 
       - name: Upload Lighthouse results
         if: always()
