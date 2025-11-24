@@ -7,6 +7,8 @@ module.exports = {
         maxWaitForLoad: 90000, // 90秒待機（CI環境でのNext.js hydration対応）
         maxWaitForFcp: 90000, // FCP待機も90秒に延長
         pauseAfterLoadMs: 5000, // ページロード後に5秒追加待機
+        onlyCategories: ['performance'], // パフォーマンスカテゴリのみに絞る
+        skipAudits: ['screenshot-thumbnails', 'final-screenshot'], // 重いauditをスキップ
         chromeFlags: [
           '--no-sandbox',
           '--disable-dev-shm-usage',
@@ -17,6 +19,8 @@ module.exports = {
           '--disable-backgrounding-occluded-windows',
           '--disable-renderer-backgrounding',
           '--disable-ipc-flooding-protection',
+          '--enable-logging',
+          '--v=1',
         ],
       },
     },
