@@ -12,30 +12,32 @@
 
 このプロジェクトには複数のリモートが設定されています：
 
-- **`origin`**: `https://github.com/safe1124/webplyzer.git` （旧リポジトリ、参照用）
-- **`personal`**: `https://github.com/ManatoYamashita/converter-webp-webm.git` （メインリポジトリ）
+- **`origin`**: `https://github.com/ManatoYamashita/converter-webp-webm.git` （メインリポジトリ、デフォルト）
+- **`legacy`**: `https://github.com/safe1124/webplyzer.git` （旧リポジトリ、参照用）
 
-### 重要: Push 先の指定
+### Push 方法
 
-`prod` ブランチへの push は必ず **`personal` リモート**に対して行ってください：
+`origin` がデフォルトリモートとして設定されているため、通常の `git push` で自動的に `origin` にプッシュされます：
 
 ```bash
-# 正しい push 方法
-git push personal prod
+# 通常の push（origin に自動的にプッシュされる）
+git push
 
-# 間違い（origin に push してしまう）
+# または明示的に指定
 git push origin prod
 ```
 
-### デフォルトの追跡ブランチ設定（推奨）
+### tracking ブランチの確認
 
-以下のコマンドで、`prod` ブランチのデフォルトリモートを `personal` に設定できます：
+`prod` ブランチは `origin/prod` を追跡するように設定されています：
 
 ```bash
-git branch --set-upstream-to=personal/prod prod
-```
+# 現在のブランチの追跡状態を確認
+git branch -vv
 
-設定後は `git push` だけで `personal/prod` に push されます。
+# 出力例：
+# * prod  cfd3b70 [origin/prod] DOC: 本番URL更新
+```
 
 ### リモート確認方法
 
@@ -43,8 +45,11 @@ git branch --set-upstream-to=personal/prod prod
 # 設定されているリモートを確認
 git remote -v
 
-# 現在のブランチの追跡状態を確認
-git branch -vv
+# 出力例：
+# legacy  https://github.com/safe1124/webplyzer.git (fetch)
+# legacy  https://github.com/safe1124/webplyzer.git (push)
+# origin  https://github.com/ManatoYamashita/converter-webp-webm.git (fetch)
+# origin  https://github.com/ManatoYamashita/converter-webp-webm.git (push)
 ```
 
 詳細は `docs/dev/branch.md` を参照してください。
