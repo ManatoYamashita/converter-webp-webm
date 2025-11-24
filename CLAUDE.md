@@ -212,6 +212,49 @@ All project knowledge lives in `docs/` (single source of truth). When adding/upd
 
 ## Branch & Commit Workflow
 
+### Git Remote Configuration
+
+This project has **multiple Git remotes** configured:
+
+- **`origin`**: `https://github.com/safe1124/webplyzer.git` (legacy repository, reference only)
+- **`personal`**: `https://github.com/ManatoYamashita/converter-webp-webm.git` (main repository)
+
+**IMPORTANT**: Always push to the `personal` remote, not `origin`.
+
+#### Correct Push Command
+
+```bash
+# Push to prod branch (CORRECT)
+git push personal prod
+
+# DON'T use origin (WRONG)
+git push origin prod  # This pushes to the wrong repository!
+```
+
+#### Set Default Tracking Branch (Recommended)
+
+To avoid specifying `personal` every time:
+
+```bash
+# Set prod branch to track personal/prod
+git branch --set-upstream-to=personal/prod prod
+
+# After this, simple `git push` works
+git push
+```
+
+#### Verify Remote Configuration
+
+```bash
+# Check configured remotes
+git remote -v
+
+# Check branch tracking status
+git branch -vv
+```
+
+See `docs/dev/branch.md` for detailed branch strategy and workflow.
+
 ### Branch Naming
 
 ```text

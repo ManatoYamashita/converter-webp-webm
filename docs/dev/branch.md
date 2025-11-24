@@ -5,6 +5,79 @@
 - `main`: 前バージョンの保存用ブランチ。基本的に使用しない。
 - リリース専用ブランチは未運用。必要時に本ファイルへ追記する。
 
+## Git リモート設定
+
+このプロジェクトには**複数の Git リモート**が設定されています：
+
+| リモート名 | URL | 用途 |
+|----------|-----|------|
+| `origin` | `https://github.com/safe1124/webplyzer.git` | 旧リポジトリ（参照用） |
+| `personal` | `https://github.com/ManatoYamashita/converter-webp-webm.git` | **メインリポジトリ（push 先）** |
+
+### 重要: Push 先の指定
+
+**すべての push は `personal` リモートに対して行ってください。**
+
+```bash
+# 正しい push 方法
+git push personal prod
+git push personal <branch-name>
+
+# 間違い（origin に push すると旧リポジトリに送られる）
+git push origin prod  # ❌ 絶対にこれをしないこと
+```
+
+### デフォルトの追跡ブランチ設定（推奨）
+
+以下のコマンドで、ブランチのデフォルトリモートを `personal` に設定できます：
+
+```bash
+# prod ブランチの追跡先を personal/prod に設定
+git branch --set-upstream-to=personal/prod prod
+
+# 設定後は git push だけで personal に push される
+git push
+```
+
+### リモート設定の確認方法
+
+```bash
+# 設定されているリモートを確認
+git remote -v
+
+# 出力例:
+# origin    https://github.com/safe1124/webplyzer.git (fetch)
+# origin    https://github.com/safe1124/webplyzer.git (push)
+# personal  https://github.com/ManatoYamashita/converter-webp-webm.git (fetch)
+# personal  https://github.com/ManatoYamashita/converter-webp-webm.git (push)
+
+# 現在のブランチの追跡状態を確認
+git branch -vv
+
+# 出力例:
+# * prod  abc1234 [personal/prod] fix: something
+```
+
+### トラブルシューティング
+
+**Q: 誤って origin に push してしまった場合は？**
+
+A: origin リポジトリには影響しないため、改めて personal に push してください：
+
+```bash
+git push personal prod
+```
+
+**Q: origin を削除してもいい？**
+
+A: 参照用として残していますが、混乱を避けるため削除も可能です：
+
+```bash
+git remote remove origin
+```
+
+削除後は personal のみになり、`git push` で自動的に personal に push されます。
+
 ## 重要な禁止事項
 - **`main` および `prod` への直接pushは厳禁**。保護設定により物理的にブロックされる。
 - すべての変更は作業ブランチを作成し、CI/CD を通じて PR を経由して `prod` にマージする。

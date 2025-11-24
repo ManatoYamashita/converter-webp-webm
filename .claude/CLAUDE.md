@@ -8,6 +8,47 @@
 - ドキュメントコミットは `DOC:` プレフィックス。
 - 機密情報（PII等）は `docs/` に保存しない。
 
+## Git リモート設定
+
+このプロジェクトには複数のリモートが設定されています：
+
+- **`origin`**: `https://github.com/safe1124/webplyzer.git` （旧リポジトリ、参照用）
+- **`personal`**: `https://github.com/ManatoYamashita/converter-webp-webm.git` （メインリポジトリ）
+
+### 重要: Push 先の指定
+
+`prod` ブランチへの push は必ず **`personal` リモート**に対して行ってください：
+
+```bash
+# 正しい push 方法
+git push personal prod
+
+# 間違い（origin に push してしまう）
+git push origin prod
+```
+
+### デフォルトの追跡ブランチ設定（推奨）
+
+以下のコマンドで、`prod` ブランチのデフォルトリモートを `personal` に設定できます：
+
+```bash
+git branch --set-upstream-to=personal/prod prod
+```
+
+設定後は `git push` だけで `personal/prod` に push されます。
+
+### リモート確認方法
+
+```bash
+# 設定されているリモートを確認
+git remote -v
+
+# 現在のブランチの追跡状態を確認
+git branch -vv
+```
+
+詳細は `docs/dev/branch.md` を参照してください。
+
 ## 運用フロー（PDCA）
 1. PLAN: `docs/index.md` で既存配置と命名を確認。
 2. DO: 該当 `docs/` ファイルを更新 or 新規作成。必要に応じてカテゴリディレクトリ追加。
@@ -27,4 +68,4 @@
 - ドキュメントのエンドポイント: `docs/index.md`
 - ブランチ戦略: `docs/dev/branch.md`
 
-最終更新日: 2025-10-24
+最終更新日: 2025-01-24
