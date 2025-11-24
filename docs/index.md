@@ -1,4 +1,4 @@
-# Webplyzer ドキュメントインデックス
+# Converter WebP/WebM ドキュメントインデックス
 
 ## このドキュメントについて
 - `docs/` ディレクトリの構成と運用ルールを集約したハブです。
@@ -7,15 +7,16 @@
 ## ディレクトリ構成
 ```text
 docs/
-├─ index.md                ... 本ファイル。インデックスと運用ルール
+├─ index.md                       ... 本ファイル。インデックスと運用ルール
 ├─ specs/
-│  └─ spec.md              ... プロダクト要件・システム仕様
+│  └─ spec.md                     ... プロダクト要件・システム仕様
 ├─ design/
-│  └─ design-system.md     ... デザインシステム包括ガイド
+│  └─ design-system.md            ... デザインシステム包括ガイド
 └─ dev/
-   ├─ branch.md            ... ブランチ戦略・レビュー手順
-   ├─ turbopack-support.md ... Turbopack サポート状況と移行ガイド
-   └─ next16-upgrade.md    ... Next.js 16 アップグレードサマリー
+   ├─ branch.md                   ... ブランチ戦略・レビュー手順
+   ├─ turbopack-support.md        ... Turbopack サポート状況と移行ガイド
+   ├─ next16-upgrade.md           ... Next.js 16 アップグレードサマリー
+   └─ vercel-sharp-deployment.md  ... Vercel sharp デプロイエラー解決ガイド
 ```
 
 ## 各ドキュメントの概要
@@ -24,6 +25,7 @@ docs/
 - `docs/dev/branch.md`: `main` ブランチ保護方針、ブランチ命名、コミット/PR テンプレートを定義。
 - `docs/dev/turbopack-support.md`: Turbopack のサポート状況と本番ビルドへの移行ガイド。
 - `docs/dev/next16-upgrade.md`: Next.js 16 および React 19 へのアップグレード詳細記録（2025-11-22実施）。
+- `docs/dev/vercel-sharp-deployment.md`: Vercel デプロイ時の sharp モジュールエラー解決プロセス。serverExternalPackages 設定、postinstall スクリプト、クロスプラットフォーム依存関係の問題と解決方法を詳述（2025-11-24解決）。
 - `../README.md`: セットアップ手順とユーザー向け機能概要。
 - `../AGENTS.md`: コントリビュータ向けガイドライン（プロジェクト構造、開発コマンド、レビュー要件）。
 - `../CLAUDE.md`: Claude Code 向け技術ガイド（アーキテクチャ、開発コマンド、AIエージェント向けヒント）。
@@ -41,5 +43,5 @@ docs/
 
 ---
 
-**最終更新日**: 2025-11-23
-**更新内容**: Next.js 16 アップグレード、React 19.2.0 安定版移行、Toast 通知システム（sonner）導入、MAX_FILE_SIZE_BYTES 制約追加、コンポーネント化反映
+**最終更新日**: 2025-11-24
+**更新内容**: Vercel sharp デプロイ問題のドキュメント追加 (`docs/dev/vercel-sharp-deployment.md`)。serverExternalPackages、postinstall、クロスプラットフォーム依存関係の解決方法を記録。

@@ -1,4 +1,4 @@
-# Webplyzer Design System
+# Converter WebP/WebM Design System
 
 **Version:** 2.0.0
 **Last Updated:** 2025-11-23
@@ -8,7 +8,7 @@
 
 ## Overview
 
-Webplyzerのデザインシステムは、**シンプル性**、**モダン性**、**ダークモード対応**を柱とした、一貫性のあるユーザー体験を提供するための設計指針です。
+Converter WebP/WebMのデザインシステムは、**シンプル性**、**モダン性**、**ダークモード対応**を柱とした、一貫性のあるユーザー体験を提供するための設計指針です。
 
 ### Design Philosophy
 
@@ -30,7 +30,7 @@ Webplyzerのデザインシステムは、**シンプル性**、**モダン性**
 
 ### Brand Color Palette
 
-Webplyzerは**Material Design Blue**をブランドカラーとして採用しています。50から900までの10段階のパレットを定義し、ライトモード・ダークモード両対応を実現しています。
+Converter WebP/WebMは**Material Design Blue**をブランドカラーとして採用しています。50から900までの10段階のパレットを定義し、ライトモード・ダークモード両対応を実現しています。
 
 | Shade | HEX | RGB | Usage |
 |-------|-----|-----|-------|
@@ -441,7 +441,7 @@ body {
 
 ### Spacing Scale (8px Grid)
 
-Webplyzerは**8の倍数ルール**を採用し、視覚的リズムと一貫性を保っています。
+Converter WebP/WebMは**8の倍数ルール**を採用し、視覚的リズムと一貫性を保っています。
 
 | Tailwind | Value | Usage |
 |----------|-------|-------|
@@ -696,7 +696,7 @@ body {
 
 2. **タッチターゲットサイズ**
    - 最小 44×44px (iOS HIG)
-   - Webplyzer標準: `h-8 w-8` (32px) ～ `py-4` (min 48px)
+   - Converter WebP/WebM標準: `h-8 w-8` (32px) ～ `py-4` (min 48px)
 
 3. **レスポンシブ余白**
    ```tsx

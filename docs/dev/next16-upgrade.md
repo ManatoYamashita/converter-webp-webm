@@ -6,7 +6,7 @@
 
 ## Overview
 
-WebplyzerプロジェクトをNext.js 15.0.0-canary.57からNext.js 16.0.3（stable）にアップグレードしました。同時にReact 19 RC版からstable版へもアップグレードを実施しました。
+Converter WebP/WebMプロジェクトをNext.js 15.0.0-canary.57からNext.js 16.0.3（stable）にアップグレードしました。同時にReact 19 RC版からstable版へもアップグレードを実施しました。
 
 ## Upgrade Summary
 

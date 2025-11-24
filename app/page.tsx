@@ -86,7 +86,7 @@ export default function HomePage() {
     {
       "@context": "https://schema.org",
       "@type": "WebSite",
-      name: "Webplyzer",
+      name: "Converter WebP/WebM",
       url: SITE_URL,
       description:
         "Convert JPG, JPEG, PNG, AVIF, SVG, HEIC images to WebP and MP4, MOV, MKV, AVI, WEBM, M4V to WebM with drag-and-drop, reordering, and sequential naming.",
@@ -98,14 +98,14 @@ export default function HomePage() {
       inLanguage: "en",
       publisher: {
         "@type": "Organization",
-        name: "Webplyzer",
+        name: "Converter WebP/WebM",
         url: SITE_URL,
       },
     },
     {
       "@context": "https://schema.org",
       "@type": "SoftwareApplication",
-      name: "Webplyzer",
+      name: "Converter WebP/WebM",
       applicationCategory: "MultimediaApplication",
       operatingSystem: "Any",
       offers: {
@@ -525,7 +525,7 @@ export default function HomePage() {
             </section>
 
             <footer className="text-center text-xs font-medium text-slate-400 dark:text-dark-text-muted opacity-0 animate-fade-in-up-delay-3">
-              © Webplyzer – Smart image optimization /{" "}
+              © Converter WebP/WebM – Smart media conversion /{" "}
               <Link href="https://manapuraza.com" className="text-brand-500 dark:text-brand-400 hover:underline">
                 ManatoYamashita
               </Link>
@@ -565,7 +565,7 @@ export default function HomePage() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 dark:border-dark-border-DEFAULT bg-white dark:bg-dark-bg-secondary px-6 py-4">
-              <h2 className="text-xl font-semibold text-slate-900 dark:text-dark-text-primary">How to Use Webplyzer</h2>
+              <h2 className="text-xl font-semibold text-slate-900 dark:text-dark-text-primary">How to Use Converter WebP/WebM</h2>
               <button
                 type="button"
                 onClick={() => setIsHelpModalOpen(false)}

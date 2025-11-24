@@ -1,7 +1,7 @@
-# Webplyzer 仕様書
+# Converter WebP/WebM 仕様書
 
 ## 1. プロダクト概要
-Webplyzer は Next.js App Router + TypeScript で構築された WebP / WebM 変換ツールです。ユーザーは画像（JPG/JPEG/PNG/AVIF/SVG/HEIC/HEIF/TIFF/BMP/GIF）と動画（MP4/MOV/MKV/AVI/WEBM/M4V）を最大 25 件まとめてアップロードし、ドラッグ&ドロップで順序を調整したうえで WebP（画像）または WebM（動画）へ変換できます。サーバーサイドで `heic-convert` + `sharp`（画像）と `ffmpeg`（動画）を用いた変換を行い、単一ファイルは直接、複数ファイルは ZIP でダウンロードできます。ダークモードを標準搭載し、モダンで洗練されたUIを提供します。
+Converter WebP/WebM は Next.js App Router + TypeScript で構築された WebP / WebM 変換ツールです。ユーザーは画像（JPG/JPEG/PNG/AVIF/SVG/HEIC/HEIF/TIFF/BMP/GIF）と動画（MP4/MOV/MKV/AVI/WEBM/M4V）を最大 25 件まとめてアップロードし、ドラッグ&ドロップで順序を調整したうえで WebP（画像）または WebM（動画）へ変換できます。サーバーサイドで `heic-convert` + `sharp`（画像）と `ffmpeg`（動画）を用いた変換を行い、単一ファイルは直接、複数ファイルは ZIP でダウンロードできます。ダークモードを標準搭載し、モダンで洗練されたUIを提供します。
 
 ## 2. 提供価値
 - **運用効率化**: 大量画像の WebP 化・連番リネーム・一括ダウンロードを 1 画面で完結。

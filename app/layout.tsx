@@ -16,8 +16,8 @@ const ogImage = "/ogp.webp";
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Webplyzer | Batch WebP Converter",
-    template: "%s | Webplyzer",
+    default: "Converter WebP/WebM | Batch Image & Video Converter",
+    template: "%s | Converter WebP/WebM",
   },
   description:
     "Convert JPG, JPEG, PNG, SVG, HEIC images to WebP and MP4, MOV, MKV, AVI, WEBM, M4V to WebM with drag-and-drop and sequential naming.",
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     "video converter",
     "batch convert",
     "drag and drop",
-    "webplyzer",
+    "converter webp webm",
   ],
   icons: {
     icon: [
@@ -50,17 +50,17 @@ export const metadata: Metadata = {
     canonical: siteUrl,
   },
   openGraph: {
-    title: "Webplyzer | Batch WebP Converter",
+    title: "Converter WebP/WebM | Batch Image & Video Converter",
     description:
       "Drag, reorder, and convert images to WebP and videos to WebM with sequential filenames and ZIP export.",
     url: siteUrl,
-    siteName: "Webplyzer",
+    siteName: "Converter WebP/WebM",
     images: [
       {
         url: ogImage,
         width: 1200,
         height: 630,
-        alt: "Webplyzer - Batch WebP Converter",
+        alt: "Converter WebP/WebM - Batch Image & Video Converter",
       },
     ],
     locale: "en_US",
@@ -68,12 +68,12 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Webplyzer | Batch WebP Converter",
+    title: "Converter WebP/WebM | Batch Image & Video Converter",
     description: "Convert images to WebP and videos to WebM with drag-and-drop and ZIP export.",
     images: [ogImage],
   },
-  applicationName: "Webplyzer",
-  authors: [{ name: "Webplyzer" }],
+  applicationName: "Converter WebP/WebM",
+  authors: [{ name: "Converter WebP/WebM" }],
   manifest: "/manifest.webmanifest",
   category: "utilities",
   robots: {

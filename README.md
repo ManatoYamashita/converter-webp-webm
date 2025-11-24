@@ -1,8 +1,8 @@
 <div align="center">
 
-![Webplyzer Cover](./public/ogp.webp)
+![Converter WebP/WebM Cover](./public/ogp.webp)
 
-# Webplyzer
+# Converter WebP/WebM
 
 **バッチ WebP / WebM 変換ツール**
 
@@ -33,7 +33,7 @@
 
 ## 🎯 概要
 
-Webplyzer は、Next.js 16 App Router で構築されたモダンなバッチ変換ツールです。複数の画像や動画をドラッグ&ドロップで簡単にアップロードし、WebP（画像）や WebM（動画）形式へ一括変換できます。
+Converter WebP/WebM は、Next.js 16 App Router で構築されたモダンなバッチ変換ツールです。複数の画像や動画をドラッグ&ドロップで簡単にアップロードし、WebP（画像）や WebM（動画）形式へ一括変換できます。
 
 - ✨ **シンプルな操作**: ドラッグ&ドロップで直感的にファイルを追加
 - 🎨 **モダンなUI**: ダークモード対応の洗練されたインターフェース
@@ -108,8 +108,8 @@ Webplyzer は、Next.js 16 App Router で構築されたモダンなバッチ変
 
 ```bash
 # リポジトリをクローン
-git clone https://github.com/safe1124/webplyzer.git
-cd webplyzer
+git clone https://github.com/ManatoYamashita/converter-webp-webm.git
+cd converter-webp-webm
 
 # 依存パッケージをインストール
 npm install
@@ -177,7 +177,7 @@ npm run dev
 ## 📂 プロジェクト構成
 
 ```
-webplyzer/
+converter-webp-webm/
 ├── app/                      # Next.js App Router
 │   ├── api/
 │   │   └── convert/          # 変換 API エンドポイント
@@ -243,6 +243,6 @@ npm run start
 
 **Made with ❤️ using Next.js 16 & React 19**
 
-[Report Bug](https://github.com/safe1124/webplyzer/issues) · [Request Feature](https://github.com/safe1124/webplyzer/issues)
+[Report Bug](https://github.com/ManatoYamashita/converter-webp-webm/issues) · [Request Feature](https://github.com/ManatoYamashita/converter-webp-webm/issues)
 
 </div>

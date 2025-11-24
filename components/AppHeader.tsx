@@ -12,11 +12,11 @@ export function AppHeader({ onHelpClick }: AppHeaderProps) {
         <Image src="/favicon.webp" alt="" width={24} height={24} className="h-6 w-6" />
       </span>
       <h1 className="mt-4 text-2xl font-semibold text-slate-900 dark:text-dark-text-primary sm:text-3xl">
-        Webplyzer - Batch WebP Converter
+        Converter WebP/WebM
       </h1>
       <div className="mt-2 flex items-center gap-2">
         <p className="text-sm text-slate-500 dark:text-dark-text-secondary">
-          Convert your images to WebP format
+          Convert images to WebP and videos to WebM
         </p>
         <button
           type="button"

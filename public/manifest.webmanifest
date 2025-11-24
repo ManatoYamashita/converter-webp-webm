@@ -1,6 +1,6 @@
 {
-  "name": "Webplyzer",
-  "short_name": "Webplyzer",
+  "name": "Converter WebP/WebM",
+  "short_name": "WebP/WebM",
   "description": "Batch convert images (JPG, JPEG, PNG, AVIF, SVG, HEIC) to WebP and videos (MP4, MOV, MKV, AVI, WEBM, M4V) to WebM with drag-and-drop and sequential naming.",
   "start_url": "/",
   "display": "standalone",
