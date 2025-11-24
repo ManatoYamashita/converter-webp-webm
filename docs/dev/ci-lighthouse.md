@@ -76,25 +76,58 @@ runtimeError: {
 - Fails early with detailed logs if rendering fails
 
 #### 4. Lighthouse CI Configuration
+
+**Workflow Step (Simplified):**
 ```yaml
 - name: Lighthouse audit
-  run: |
-    npx @lhci/cli@0.13.0 autorun \
-      --collect.url=http://localhost:3000 \
-      --collect.numberOfRuns=1 \
-      --collect.settings.maxWaitForLoad=90000 \
-      --collect.settings.chromeFlags="--no-sandbox --disable-dev-shm-usage --disable-gpu --disable-software-rasterizer" \
-      --upload.target=filesystem \
-      --assert.preset=lighthouse:recommended
+  run: npx @lhci/cli@0.13.0 autorun
+```
+
+**Why simplified?** All configuration is now in `.lighthouserc.js` to avoid CLI option conflicts and improve maintainability. Previously, passing Chrome flags as a space-separated string in CLI caused parsing issues.
+
+**Configuration in `.lighthouserc.js`:**
+```javascript
+module.exports = {
+  ci: {
+    collect: {
+      url: ['http://localhost:3000'],
+      numberOfRuns: 1,
+      settings: {
+        maxWaitForLoad: 90000, // 90 seconds for page load
+        maxWaitForFcp: 90000, // 90 seconds for First Contentful Paint
+        pauseAfterLoadMs: 5000, // Additional 5s wait after load event
+        chromeFlags: [
+          '--no-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-gpu',
+          '--disable-software-rasterizer',
+          '--disable-extensions',
+          '--disable-background-timer-throttling',
+          '--disable-backgrounding-occluded-windows',
+          '--disable-renderer-backgrounding',
+          '--disable-ipc-flooding-protection',
+        ],
+      },
+    },
+    // ... upload and assert config
+  },
+};
 ```
 
 **Key Settings:**
-- `maxWaitForLoad=90000`: Extended FCP wait time to 90 seconds (default: 45s insufficient for CI)
-- Chrome flags:
+- `maxWaitForLoad=90000`: Extended page load wait time to 90 seconds (default: 45s insufficient for CI)
+- `maxWaitForFcp=90000`: Extended FCP-specific wait time to 90 seconds
+- `pauseAfterLoadMs=5000`: Additional 5-second wait after load event to ensure full hydration
+- Chrome flags (CI environment optimizations):
   - `--no-sandbox`: Required for CI environments (security constraint)
   - `--disable-dev-shm-usage`: Prevents `/dev/shm` memory issues
   - `--disable-gpu`: No GPU available in CI
   - `--disable-software-rasterizer`: Improves rendering performance
+  - `--disable-extensions`: Disables Chrome extensions
+  - `--disable-background-timer-throttling`: Prevents timer throttling
+  - `--disable-backgrounding-occluded-windows`: Disables window occlusion optimization
+  - `--disable-renderer-backgrounding`: Prevents renderer backgrounding
+  - `--disable-ipc-flooding-protection`: Disables IPC flooding protection (improves CI stability)
 
 ## Performance Thresholds
 
@@ -135,10 +168,17 @@ pkill -f "next start"
 
 ### Lighthouse Still Fails with NO_FCP
 
-1. **Check server logs**: Review `/tmp/next.log` in CI output
-2. **Verify content step**: Check if "Verify page content" step passes
-3. **Increase sleep duration**: Try `sleep 15` or `sleep 20` in the hydration wait step
-4. **Check maxWaitForLoad**: Increase to 120000 (2 minutes) if needed
+1. **CLI Option Conflicts (Common Issue)**: If using CLI options like `--collect.settings.chromeFlags="..."`, these may conflict with `.lighthouserc.js` settings. Passing Chrome flags as a space-separated string causes parsing issues. **Solution**: Remove all CLI options from the workflow and rely solely on `.lighthouserc.js` configuration. Use `npx @lhci/cli autorun` without additional options.
+
+2. **Check server logs**: Review `/tmp/next.log` in CI output
+
+3. **Verify content step**: Check if "Verify page content" step passes
+
+4. **Increase sleep duration**: Try `sleep 15` or `sleep 20` in the hydration wait step
+
+5. **Check maxWaitForFcp**: In `.lighthouserc.js`, ensure `maxWaitForFcp` is set to 90000 or higher. This is separate from `maxWaitForLoad` and specifically controls FCP timeout.
+
+6. **Add pauseAfterLoadMs**: In `.lighthouserc.js`, add `pauseAfterLoadMs: 5000` to wait an additional 5 seconds after the load event before running audits.
 
 ### False Positives (Performance Threshold Exceeded)
 
@@ -167,4 +207,5 @@ pkill -f "next start"
 
 ---
 
-Last updated: 2025-01-24
+Last updated: 2025-11-24
+**Changes**: Fixed CLI option conflicts by removing redundant CLI options and relying solely on `.lighthouserc.js` configuration. Added `maxWaitForFcp` and `pauseAfterLoadMs` settings. Enhanced Chrome flags for CI environment stability.

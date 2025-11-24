@@ -45,7 +45,6 @@ docs/
 
 ---
 
-**最終更新日**: 2025-01-24
+**最終更新日**: 2025-11-24
 **更新内容**:
-- Git リモート設定ドキュメント追加（`.claude/CLAUDE.md`、`CLAUDE.md`、`docs/dev/branch.md` を更新）。複数のリモート設定（origin vs personal）、push 先の指定方法、デフォルトの追跡ブランチ設定、トラブルシューティングを記録。
-- Lighthouse CI の NO_FCP エラー対策ドキュメント追加 (`docs/dev/ci-lighthouse.md`)。GitHub Actions ワークフロー改善、wait-on 設定強化、Next.js hydration 待機処理、Chrome flags 設定、パフォーマンス閾値定義を記録。
+- Lighthouse CI の NO_FCP エラー根本解決（`.github/workflows/prod-quality.yml`、`.lighthouserc.js`、`docs/dev/ci-lighthouse.md` 更新）。CLI オプション競合問題を解決し、`.lighthouserc.js` のみに設定を集約。`maxWaitForFcp` 追加（90秒）、`pauseAfterLoadMs` 追加（5秒）、CI環境安定化のための追加 Chrome flags 設定。スペース区切り文字列での Chrome flags 渡しが原因でパース失敗していた問題を修正。

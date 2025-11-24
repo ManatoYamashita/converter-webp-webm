@@ -56,14 +56,7 @@ jobs:
           fi
 
       - name: Lighthouse audit
-        run: |
-          npx @lhci/cli@0.13.0 autorun \
-            --collect.url=http://localhost:3000 \
-            --collect.numberOfRuns=1 \
-            --collect.settings.maxWaitForLoad=90000 \
-            --collect.settings.chromeFlags="--no-sandbox --disable-dev-shm-usage --disable-gpu --disable-software-rasterizer" \
-            --upload.target=filesystem \
-            --assert.preset=lighthouse:recommended
+        run: npx @lhci/cli@0.13.0 autorun
 
       - name: Upload Lighthouse results
         if: always()
