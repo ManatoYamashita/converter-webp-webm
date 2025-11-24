@@ -94,17 +94,23 @@ No automated tests exist. Before creating a PR, verify:
 **Required Variables:**
 
 ```bash
-NEXT_PUBLIC_URL=https://converter-webp-webm.vercel.app
+# Production (default)
+NEXT_PUBLIC_URL=https://2ewbp.manapuraza.com
+
+# Development (see .env.example)
+NEXT_PUBLIC_URL=http://localhost:3000
 ```
 
-- **`NEXT_PUBLIC_URL`**: Base URL for the application. Used in metadata (`app/layout.tsx`) and OGP image URLs (`app/page.tsx`). Must include protocol (`https://`). **Do NOT use double quotes** in `.env` files.
+- **`NEXT_PUBLIC_URL`**: Base URL for the application. Used in metadata (`app/layout.tsx`) and OGP image URLs (`app/page.tsx`). Must include protocol (`https://` or `http://`). **Do NOT use double quotes** in `.env` files.
 
 **Important Notes:**
 
 - Next.js environment variable priority (highest to lowest): `.env.local` > `.env`
 - `NEXT_PUBLIC_*` variables are exposed to the browser and embedded at build time
 - Always use `process.env.NEXT_PUBLIC_URL` to access the URL in code
-- Provide fallback values: `process.env.NEXT_PUBLIC_URL || "https://converter-webp-webm.vercel.app"`
+- Provide fallback values: `process.env.NEXT_PUBLIC_URL || "https://2ewbp.manapuraza.com"`
+- Production URL: `https://2ewbp.manapuraza.com`
+- Development URL: `http://localhost:3000` (defined in `.env.example`)
 
 ### Key Architectural Patterns
 1. **Client-Server Separation**: Image and video conversion happens server-side (Node runtime required for `sharp`, `heic-convert`, and `ffmpeg`). Client handles file selection, reordering, progress tracking, and download triggering. ZIP generation happens server-side.

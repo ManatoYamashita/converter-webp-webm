@@ -10,7 +10,7 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_URL || "https://converter-webp-webm.vercel.app";
+const siteUrl = process.env.NEXT_PUBLIC_URL || "https://2ewbp.manapuraza.com";
 const ogImage = `${siteUrl}/ogp.webp`;
 
 export const metadata: Metadata = {
