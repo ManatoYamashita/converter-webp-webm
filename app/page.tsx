@@ -15,7 +15,7 @@ import { FloatingUploader } from "@/components/FloatingUploader";
 import { FileItem } from "@/components/types";
 import { ALLOWED_EXTENSIONS, MAX_FILES, sanitizeFilename } from "@/lib/sanitizeFilename";
 
-const SITE_URL = "https://webplyzer.app";
+const SITE_URL = process.env.NEXT_PUBLIC_URL || "https://converter-webp-webm.vercel.app";
 const SUPPORTED_FORMATS_LABEL =
   "JPG / JPEG / PNG / AVIF / SVG / HEIC / HEIF / TIFF / BMP / GIF / MP4 / MOV / MKV / AVI / WEBM / M4V";
 const ACCEPT_TYPES =

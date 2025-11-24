@@ -85,6 +85,27 @@ No automated tests exist. Before creating a PR, verify:
 - **`tailwind.config.ts`**: Defines `brand` colors (blue) and `dark` mode colors (bg/text/border variants) with `darkMode: 'class'` enabled.
 - **`types/ffmpeg-installer.d.ts`**: Type definitions for `@ffmpeg-installer/ffmpeg` package.
 
+### Environment Variables
+
+- **`.env`**: Local environment variables (gitignored). Created from `.env.example`.
+- **`.env.local`**: Local overrides (gitignored, highest priority). Takes precedence over `.env`.
+- **`.env.example`**: Template for environment variables. Committed to repository.
+
+**Required Variables:**
+
+```bash
+NEXT_PUBLIC_URL=https://converter-webp-webm.vercel.app
+```
+
+- **`NEXT_PUBLIC_URL`**: Base URL for the application. Used in metadata (`app/layout.tsx`) and OGP image URLs (`app/page.tsx`). Must include protocol (`https://`). **Do NOT use double quotes** in `.env` files.
+
+**Important Notes:**
+
+- Next.js environment variable priority (highest to lowest): `.env.local` > `.env`
+- `NEXT_PUBLIC_*` variables are exposed to the browser and embedded at build time
+- Always use `process.env.NEXT_PUBLIC_URL` to access the URL in code
+- Provide fallback values: `process.env.NEXT_PUBLIC_URL || "https://converter-webp-webm.vercel.app"`
+
 ### Key Architectural Patterns
 1. **Client-Server Separation**: Image and video conversion happens server-side (Node runtime required for `sharp`, `heic-convert`, and `ffmpeg`). Client handles file selection, reordering, progress tracking, and download triggering. ZIP generation happens server-side.
 2. **Sequential Conversion**: Client sends files one-by-one to `/api/convert` with `file_index` to maintain order. Server validates extension, routes to appropriate converter (image/video), returns buffer.

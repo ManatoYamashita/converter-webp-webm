@@ -10,8 +10,8 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
-const siteUrl = "https://webplyzer.app";
-const ogImage = "/ogp.webp";
+const siteUrl = process.env.NEXT_PUBLIC_URL || "https://converter-webp-webm.vercel.app";
+const ogImage = `${siteUrl}/ogp.webp`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
