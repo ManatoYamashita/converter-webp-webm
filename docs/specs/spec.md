@@ -37,14 +37,17 @@ Converter WebP/WebM は Next.js App Router + TypeScript で構築された WebP 
 - 生成ファイル名は `<base>_<index>.webp`（1 始まり、並び順に依存）
 
 ### 4.3 変換処理
-- クライアントは各ファイルごとに `POST /api/convert` へ `FormData` を送信（`base_name`, `file_index`, `files`）。ファイルごとに逐次リクエストし、順序を維持
+- クライアントは各ファイルごとに `POST /api/convert` へ `FormData` を送信（`base_name`, `file_index`, `image_format`, `image_quality`, `files`）。ファイルごとに逐次リクエストし、順序を維持
 - API はバリデーション（拡張子、件数）を行い、以下のフローで変換:
   1. **動画 (`mp4`, `mov`, `mkv`, `avi`, `webm`, `m4v`)**: `ffmpeg` で VP9（libvpx-vp9）+ Opus に再エンコードし WebM を生成（MIME タイプ `video/*` でも動画判定）
-  2. **画像 (HEIC/HEIF)**: `heic-convert` で JPEG（品質 1）へ変換 → `sharp` で WebP（品質 90、`rotate()` で EXIF 補正、animated 有効）
-  3. **画像 (その他)**: `sharp` で WebP（品質 90、animated 有効）
-- 単一ファイル: WebP または WebM をバイナリ返却
-- 複数ファイル: サーバーでまとめて ZIP 化し、`<base>_webp.zip` として返却（WebM も同梱）
+  2. **画像 (HEIC/HEIF)**: `heic-convert` で JPEG（品質 1）へ変換 → `sharp` で WebP/JPG（品質 70-100、デフォルト 90、`rotate()` で EXIF 補正）
+  3. **画像 (その他)**: `sharp` で WebP/JPG（品質 70-100、デフォルト 90）
+  4. **フォーマット選択**: ユーザーが WebP または JPG を選択可能（デフォルト WebP）
+  5. **品質調整**: スライダーで 70-100 の範囲で品質を調整可能（デフォルト 90）
+- 単一ファイル: WebP/JPG または WebM をバイナリ返却
+- 複数ファイル: サーバーでまとめて ZIP 化し、`<base>_webp.zip` または `<base>_jpg.zip` として返却（WebM も同梱）
 - エラー時は JSON `{ error: "<code>" }` を返し、フロント側で英語エラーメッセージを表示
+- **注意**: WebP のみ animated GIF のアニメーション保持が可能。JPG 変換では最初のフレームのみが保存される
 
 ### 4.4 進捗 & メッセージ
 - 変換中は進捗バーと `(現在/総数)` を表示し、キャンセルは不可

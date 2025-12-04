@@ -44,11 +44,15 @@ npm run build        # Must complete successfully
 No automated tests exist. Before creating a PR, verify:
 
 - Single image conversion → WebP downloads correctly
+- Single image (JPG format) → .jpg downloads correctly
 - Single video conversion → WebM downloads correctly
 - Multiple images + reorder → ZIP file order matches UI
 - Multiple videos + mixed media → ZIP file order matches UI
 - HEIC/HEIF conversion → Converts to WebP successfully
 - Animated GIF → Converts to animated WebP
+- Quality slider (70) → Lower quality, smaller file size
+- Quality slider (100) → Higher quality, larger file size
+- Mixed images + videos (JPG format) → Images as .jpg, videos as .webm in ZIP
 - Invalid file type (unsupported) → Toast error message displays
 - File size exceeds 20MB → Toast error message displays
 - Dark mode → All UI elements display correctly in dark theme
@@ -216,6 +220,8 @@ npm run start
 
 ### Documentation Strategy
 
+**Note**: See `.claude/CLAUDE.md` for docs operation rules and PDCA workflow guidelines.
+
 All project knowledge lives in `docs/` (single source of truth). When adding/updating knowledge:
 
 1. Edit appropriate file in `docs/` (or create new file using `kebab-case.md`).
@@ -241,41 +247,7 @@ All project knowledge lives in `docs/` (single source of truth). When adding/upd
 
 ### Git Remote Configuration
 
-This project has **multiple Git remotes** configured:
-
-- **`origin`**: `https://github.com/ManatoYamashita/converter-webp-webm.git` (main repository, default)
-- **`legacy`**: `https://github.com/safe1124/webplyzer.git` (legacy repository, reference only)
-
-`origin` is set as the default remote, so standard `git push` commands will automatically push to the correct repository.
-
-#### Push Commands
-
-```bash
-# Standard push (automatically uses origin)
-git push
-
-# Or explicitly specify the remote
-git push origin prod
-```
-
-#### Verify Remote Configuration
-
-```bash
-# Check configured remotes
-git remote -v
-
-# Expected output:
-# legacy  https://github.com/safe1124/webplyzer.git (fetch)
-# legacy  https://github.com/safe1124/webplyzer.git (push)
-# origin  https://github.com/ManatoYamashita/converter-webp-webm.git (fetch)
-# origin  https://github.com/ManatoYamashita/converter-webp-webm.git (push)
-
-# Check branch tracking status
-git branch -vv
-
-# Expected output:
-# * prod  cfd3b70 [origin/prod] DOC: 本番URL更新
-```
+See `.claude/CLAUDE.md` for Git remote configuration details (origin vs legacy remotes).
 
 See `docs/dev/branch.md` for detailed branch strategy and workflow.
 
