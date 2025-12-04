@@ -464,6 +464,7 @@ export default function HomePage() {
                 fileInputRef={fileInputRef}
                 isDropActive={isDropActive}
                 isConverting={isConverting}
+                isCompact={hasItems}
                 supportedFormatsLabel={SUPPORTED_FORMATS_LABEL}
                 maxFiles={MAX_FILES}
                 accept={ACCEPT_TYPES}

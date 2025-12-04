@@ -5,6 +5,11 @@ export function QualitySlider({
   onQualityChange,
   disabled,
 }: QualitySliderProps) {
+  // Calculate correct percentage for linear-gradient (min=70, max=100)
+  const min = 70;
+  const max = 100;
+  const percentage = ((quality - min) / (max - min)) * 100;
+
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between">
@@ -31,23 +36,10 @@ export function QualitySlider({
         aria-valuemin={70}
         aria-valuemax={100}
         aria-valuenow={quality}
-        className="w-full h-2 rounded-full bg-slate-200 dark:bg-dark-border-DEFAULT appearance-none cursor-pointer
-          [&::-webkit-slider-thumb]:appearance-none
-          [&::-webkit-slider-thumb]:h-5
-          [&::-webkit-slider-thumb]:w-5
-          [&::-webkit-slider-thumb]:rounded-full
-          [&::-webkit-slider-thumb]:bg-brand-500
-          [&::-webkit-slider-thumb]:dark:bg-brand-600
-          [&::-webkit-slider-thumb]:hover:scale-110
-          [&::-webkit-slider-thumb]:transition
-          [&::-moz-range-thumb]:h-5
-          [&::-moz-range-thumb]:w-5
-          [&::-moz-range-thumb]:rounded-full
-          [&::-moz-range-thumb]:bg-brand-500
-          [&::-moz-range-thumb]:dark:bg-brand-600
-          [&::-moz-range-thumb]:border-0
-          [&::-moz-range-thumb]:hover:scale-110
-          [&::-moz-range-thumb]:transition
+        style={{
+          '--value': percentage.toFixed(2),
+        } as React.CSSProperties}
+        className="quality-slider w-full h-2 rounded-full appearance-none cursor-pointer
           disabled:opacity-60 disabled:cursor-not-allowed"
       />
       <div className="flex items-center justify-between text-xs text-slate-500 dark:text-dark-text-secondary">

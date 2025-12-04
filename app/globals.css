@@ -23,3 +23,97 @@ body {
   @apply bg-brand-200 dark:bg-dark-border;
   border-radius: 9999px;
 }
+
+/* ========================================
+   Quality Slider Progressive Fill
+   ======================================== */
+
+.quality-slider {
+  height: 8px;
+}
+
+/* WebKit Browsers (Chrome, Safari, Edge) */
+.quality-slider::-webkit-slider-runnable-track {
+  height: 8px;
+  border-radius: 9999px;
+  background: linear-gradient(
+    to right,
+    #2196F3 0%,
+    #2196F3 calc(var(--value) * 1%),
+    #e2e8f0 calc(var(--value) * 1%),
+    #e2e8f0 100%
+  );
+}
+
+.dark .quality-slider::-webkit-slider-runnable-track {
+  background: linear-gradient(
+    to right,
+    #1E88E5 0%,
+    #1E88E5 calc(var(--value) * 1%),
+    #3e4a54 calc(var(--value) * 1%),
+    #3e4a54 100%
+  );
+}
+
+.quality-slider::-webkit-slider-thumb {
+  appearance: none;
+  height: 20px;
+  width: 20px;
+  border-radius: 9999px;
+  background-color: #2196F3;
+  cursor: pointer;
+  transition: transform 150ms ease;
+}
+
+.dark .quality-slider::-webkit-slider-thumb {
+  background-color: #1E88E5;
+}
+
+.quality-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+}
+
+/* Firefox */
+.quality-slider::-moz-range-track {
+  height: 8px;
+  border-radius: 9999px;
+  background-color: #e2e8f0;
+}
+
+.dark .quality-slider::-moz-range-track {
+  background-color: #3e4a54;
+}
+
+.quality-slider::-moz-range-progress {
+  height: 8px;
+  border-radius: 9999px;
+  background-color: #2196F3;
+}
+
+.dark .quality-slider::-moz-range-progress {
+  background-color: #1E88E5;
+}
+
+.quality-slider::-moz-range-thumb {
+  height: 20px;
+  width: 20px;
+  border-radius: 9999px;
+  background-color: #2196F3;
+  border: none;
+  cursor: pointer;
+  transition: transform 150ms ease;
+}
+
+.dark .quality-slider::-moz-range-thumb {
+  background-color: #1E88E5;
+}
+
+.quality-slider::-moz-range-thumb:hover {
+  transform: scale(1.1);
+}
+
+/* Disabled State */
+.quality-slider:disabled::-webkit-slider-thumb,
+.quality-slider:disabled::-moz-range-thumb {
+  cursor: not-allowed;
+}
