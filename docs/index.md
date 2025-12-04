@@ -45,6 +45,9 @@ docs/
 
 ---
 
-**最終更新日**: 2025-11-24
+**最終更新日**: 2025-12-04
 **更新内容**:
-- Lighthouse CI を `continue-on-error: true` に設定（`.github/workflows/prod-quality.yml`、`docs/dev/ci-lighthouse.md` 更新）。Next.js 16 + React 19 の組み合わせにより、GitHub Actions 環境で NO_FCP エラーが 90秒待機後も解消されないため、Lighthouse 失敗時もワークフロー全体は成功させる方針に変更。パフォーマンス検証は本番デプロイ後に手動実施、または Vercel Analytics 等の代替ツールを推奨。
+- 混合ファイルアップロード対応とサーバー側 ZIP 生成を実装（`app/api/convert/route.ts`, `app/page.tsx`, `components/ProgressPanel.tsx`, `components/StickyConvertButton.tsx` 更新）。画像と動画を同時にアップロード可能とし、サーバー側で自動判別・変換・ZIP 生成を行う。通信効率向上（25リクエスト → 1リクエスト）、ZIP ファイル名統一（`_converted.zip`）、Indeterminate Progress Bar 実装。
+- `docs/specs/spec.md` Section 4.3 変換処理を更新（一括送信方式、混合ファイル対応明記）。
+- `CLAUDE.md` Manual Testing Checklist に混合ファイルテストケース追加。
+- `README.md` 主な機能セクション更新（混合ファイル対応、進捗表示説明改善）。
