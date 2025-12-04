@@ -79,6 +79,8 @@ export async function POST(req: Request) {
     const baseName = sanitizeFilename(formData.get("base_name")?.toString());
     const files = formData.getAll("files") as File[];
     const fileIndexOverride = Number(formData.get("file_index"));
+    const imageFormat = (formData.get("image_format")?.toString() || "webp") as "webp" | "jpg";
+    const imageQuality = Math.min(100, Math.max(70, Number(formData.get("image_quality")) || 90));
 
     if (!files.length) {
       return Response.json({ error: "no_file" }, { status: 400 });
@@ -126,13 +128,23 @@ export async function POST(req: Request) {
           processBuffer = Buffer.from(jpegBuffer);
         }
 
-        const webpBuffer = await sharp(processBuffer, { failOn: "none" })
-          .rotate()
-          .webp({ quality: 90 })
-          .toBuffer();
+        let outputBuffer: Buffer;
+
+        if (imageFormat === "jpg") {
+          outputBuffer = await sharp(processBuffer, { failOn: "none" })
+            .rotate()
+            .jpeg({ quality: imageQuality })
+            .toBuffer();
+        } else {
+          outputBuffer = await sharp(processBuffer, { failOn: "none" })
+            .rotate()
+            .webp({ quality: imageQuality })
+            .toBuffer();
+        }
+
         converted.push({
-          name: `${baseName}_${ordinal}.webp`,
-          buffer: webpBuffer,
+          name: `${baseName}_${ordinal}.${imageFormat === "jpg" ? "jpg" : "webp"}`,
+          buffer: outputBuffer,
         });
       }
     }
@@ -148,7 +160,11 @@ export async function POST(req: Request) {
         single.buffer.byteOffset + single.buffer.byteLength
       ) as ArrayBuffer;
 
-      const contentType = single.name.endsWith(".webm") ? "video/webm" : "image/webp";
+      const contentType = single.name.endsWith(".webm")
+        ? "video/webm"
+        : single.name.endsWith(".jpg")
+        ? "image/jpeg"
+        : "image/webp";
 
       return new Response(body, {
         status: 200,
