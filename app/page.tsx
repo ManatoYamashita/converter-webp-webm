@@ -12,7 +12,9 @@ import { ProgressPanel } from "@/components/ProgressPanel";
 import { SelectedFiles } from "@/components/SelectedFiles";
 import { StickyConvertButton } from "@/components/StickyConvertButton";
 import { FloatingUploader } from "@/components/FloatingUploader";
-import { FileItem } from "@/components/types";
+import { FormatSelector } from "@/components/FormatSelector";
+import { QualitySlider } from "@/components/QualitySlider";
+import { FileItem, ImageFormat } from "@/components/types";
 import { ALLOWED_EXTENSIONS, MAX_FILES, sanitizeFilename } from "@/lib/sanitizeFilename";
 
 const SITE_URL = process.env.NEXT_PUBLIC_URL || "https://2ewbp.manapuraza.com";
@@ -81,6 +83,8 @@ export default function HomePage() {
   const [isDropActive, setIsDropActive] = useState(false);
   const [isUploaderVisible, setIsUploaderVisible] = useState(true);
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
+  const [imageFormat, setImageFormat] = useState<ImageFormat>("webp");
+  const [imageQuality, setImageQuality] = useState(90);
   const dragDepthRef = useRef(0);
   const structuredData = [
     {
@@ -341,6 +345,8 @@ export default function HomePage() {
         const formData = new FormData();
         formData.append("base_name", safeBaseName);
         formData.append("file_index", (index + 1).toString());
+        formData.append("image_format", imageFormat);
+        formData.append("image_quality", imageQuality.toString());
         formData.append("files", current.file, current.file.name);
 
         const response = await fetch("/api/convert", {
@@ -357,7 +363,7 @@ export default function HomePage() {
         const contentType = response.headers.get("content-type") ?? "";
         const isVideo = contentType.includes("video/");
         const blob = await response.blob();
-        const ext = isVideo ? "webm" : "webp";
+        const ext = isVideo ? "webm" : imageFormat === "jpg" ? "jpg" : "webp";
         converted.push({
           blob,
           name: `${safeBaseName}_${index + 1}.${ext}`,
@@ -367,7 +373,7 @@ export default function HomePage() {
       if (converted.length === 1) {
         downloadBlob(converted[0].blob, converted[0].name);
       } else {
-        const ext = converted[0].name.endsWith(".webm") ? "webm" : "webp";
+        const ext = converted[0].name.endsWith(".webm") ? "webm" : imageFormat === "jpg" ? "jpg" : "webp";
         await downloadMultiple(converted, `${safeBaseName}_${ext}.zip`);
       }
 
@@ -459,6 +465,19 @@ export default function HomePage() {
                 </button>
               </div>
             </label>
+
+            <section className="flex flex-col gap-4">
+              <FormatSelector
+                selectedFormat={imageFormat}
+                onFormatChange={setImageFormat}
+                disabled={isConverting}
+              />
+              <QualitySlider
+                quality={imageQuality}
+                onQualityChange={setImageQuality}
+                disabled={isConverting}
+              />
+            </section>
 
             <div
               className={clsx(
@@ -616,7 +635,7 @@ export default function HomePage() {
                 <h3 className="text-lg font-semibold text-slate-800 dark:text-dark-text-primary mb-3">Specifications</h3>
                 <ul className="space-y-2 text-sm text-slate-600 dark:text-dark-text-secondary">
                   <li><span className="font-semibold text-slate-700 dark:text-dark-text-primary">Max files:</span> 25 files</li>
-                  <li><span className="font-semibold text-slate-700 dark:text-dark-text-primary">Image output:</span> WebP format (quality 90)</li>
+                  <li><span className="font-semibold text-slate-700 dark:text-dark-text-primary">Image output:</span> WebP or JPG format (quality 70-100, default 90)</li>
                   <li><span className="font-semibold text-slate-700 dark:text-dark-text-primary">Video output:</span> WebM format (VP9 + Opus)</li>
                   <li><span className="font-semibold text-slate-700 dark:text-dark-text-primary">Filename format:</span> {`<base>_<index>.webp`} or {`.webm`}</li>
                   <li><span className="font-semibold text-slate-700 dark:text-dark-text-primary">HEIC/HEIF support:</span> Converts Apple device photos seamlessly</li>
