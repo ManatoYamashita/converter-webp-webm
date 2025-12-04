@@ -38,17 +38,6 @@ function reorderList<T>(list: T[], fromIndex: number, toIndex: number): T[] {
   return updated;
 }
 
-async function downloadMultiple(
-  files: Array<{ blob: Blob; name: string }>,
-  zipName: string
-): Promise<void> {
-  const { default: JSZip } = await import("jszip");
-  const zip = new JSZip();
-  files.forEach(({ blob, name }) => zip.file(name, blob));
-  const blob = await zip.generateAsync({ type: "blob" });
-  downloadBlob(blob, zipName);
-}
-
 function downloadBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
@@ -79,7 +68,6 @@ export default function HomePage() {
   const [items, setItems] = useState<FileItem[]>([]);
   const [baseName, setBaseName] = useState("image");
   const [isConverting, setIsConverting] = useState(false);
-  const [progress, setProgress] = useState<{ current: number; total: number } | null>(null);
   const [isDropActive, setIsDropActive] = useState(false);
   const [isUploaderVisible, setIsUploaderVisible] = useState(true);
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
@@ -325,56 +313,51 @@ export default function HomePage() {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (isConverting) return;
-
-    if (!items.length) {
-      toast.error("No files selected");
-      return;
-    }
+    if (isConverting || !items.length) return;
 
     const safeBaseName = sanitizeFilename(baseName);
     setIsConverting(true);
-    setProgress({ current: 0, total: items.length });
 
     try {
-      const converted: Array<{ blob: Blob; name: string }> = [];
+      const formData = new FormData();
+      formData.append("base_name", safeBaseName);
+      formData.append("image_format", imageFormat);
+      formData.append("image_quality", imageQuality.toString());
 
-      for (let index = 0; index < items.length; index += 1) {
-        setProgress({ current: index + 1, total: items.length });
-        const current = items[index];
-        const formData = new FormData();
-        formData.append("base_name", safeBaseName);
-        formData.append("file_index", (index + 1).toString());
-        formData.append("image_format", imageFormat);
-        formData.append("image_quality", imageQuality.toString());
-        formData.append("files", current.file, current.file.name);
+      // 全ファイルを1つの FormData に追加
+      items.forEach((item) => {
+        formData.append("files", item.file, item.file.name);
+      });
 
-        const response = await fetch("/api/convert", {
-          method: "POST",
-          body: formData,
-        });
+      const response = await fetch("/api/convert", {
+        method: "POST",
+        body: formData,
+      });
 
-        if (!response.ok) {
-          const payload = (await response.json().catch(() => null)) as { error?: string } | null;
-          const message = resolveErrorMessage(payload?.error);
-          throw new Error(message);
-        }
-
-        const contentType = response.headers.get("content-type") ?? "";
-        const isVideo = contentType.includes("video/");
-        const blob = await response.blob();
-        const ext = isVideo ? "webm" : imageFormat === "jpg" ? "jpg" : "webp";
-        converted.push({
-          blob,
-          name: `${safeBaseName}_${index + 1}.${ext}`,
-        });
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+        const message = resolveErrorMessage(payload?.error);
+        throw new Error(message);
       }
 
-      if (converted.length === 1) {
-        downloadBlob(converted[0].blob, converted[0].name);
+      // Content-Type でファイルタイプ判定
+      const contentType = response.headers.get("content-type") ?? "";
+      const blob = await response.blob();
+
+      if (contentType === "application/zip") {
+        // 複数ファイル → ZIP
+        const filename = response.headers
+          .get("content-disposition")
+          ?.match(/filename="([^"]+)"/)?.[1] || `${safeBaseName}_converted.zip`;
+        downloadBlob(blob, filename);
       } else {
-        const ext = converted[0].name.endsWith(".webm") ? "webm" : imageFormat === "jpg" ? "jpg" : "webp";
-        await downloadMultiple(converted, `${safeBaseName}_${ext}.zip`);
+        // 単一ファイル → 直接ダウンロード
+        const ext = contentType.includes("video/webm")
+          ? "webm"
+          : imageFormat === "jpg"
+          ? "jpg"
+          : "webp";
+        downloadBlob(blob, `${safeBaseName}_1.${ext}`);
       }
 
       toast.success("Conversion completed successfully.");
@@ -390,19 +373,10 @@ export default function HomePage() {
       }
     } finally {
       setIsConverting(false);
-      setProgress(null);
     }
   };
 
-  const progressPercent =
-    progress && progress.total > 0
-      ? Math.min(100, Math.round((progress.current / progress.total) * 100))
-      : 0;
-
   const hasItems = items.length > 0;
-  const progressLabel = isConverting
-    ? `Converting${progress ? ` (${progress.current}/${progress.total})` : ""}`
-    : "Convert to WebP / WebM";
 
   const handleFloatingDragOver = (event: React.DragEvent) => {
     event.preventDefault();
@@ -500,13 +474,7 @@ export default function HomePage() {
               />
             </div>
 
-            {progress && (
-              <ProgressPanel
-                progressPercent={progressPercent}
-                current={progress.current}
-                total={progress.total}
-              />
-            )}
+            {isConverting && <ProgressPanel />}
 
             <section className="space-y-4 opacity-0 animate-fade-in-up-delay-3">
               <div className="flex items-center justify-between">
@@ -572,10 +540,9 @@ export default function HomePage() {
         </div>
       </div>
 
-      <StickyConvertButton 
-        hasItems={hasItems} 
-        isConverting={isConverting} 
-        progressLabel={progressLabel}
+      <StickyConvertButton
+        hasItems={hasItems}
+        isConverting={isConverting}
         onConvert={() => {
           if (!isConverting && items.length > 0) {
             const form = document.querySelector('form');

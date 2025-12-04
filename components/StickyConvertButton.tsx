@@ -4,12 +4,13 @@ import { Loader2 } from "lucide-react";
 export type StickyConvertButtonProps = {
   hasItems: boolean;
   isConverting: boolean;
-  progressLabel: string;
   onConvert: () => void;
 };
 
-export function StickyConvertButton({ hasItems, isConverting, progressLabel, onConvert }: StickyConvertButtonProps) {
+export function StickyConvertButton({ hasItems, isConverting, onConvert }: StickyConvertButtonProps) {
   if (!hasItems) return null;
+
+  const label = isConverting ? "Converting" : "Convert to WebP / WebM";
 
   return (
     <div aria-live="polite" className="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center pb-6">
@@ -26,7 +27,7 @@ export function StickyConvertButton({ hasItems, isConverting, progressLabel, onC
       >
         <span className="flex items-center justify-center gap-2">
           {isConverting && <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />}
-          {progressLabel}
+          {label}
         </span>
       </button>
     </div>
