@@ -78,7 +78,6 @@ export async function POST(req: Request) {
     const formData = await req.formData();
     const baseName = sanitizeFilename(formData.get("base_name")?.toString());
     const files = formData.getAll("files") as File[];
-    const fileIndexOverride = Number(formData.get("file_index"));
     const imageFormat = (formData.get("image_format")?.toString() || "webp") as "webp" | "jpg";
     const imageQuality = Math.min(100, Math.max(70, Number(formData.get("image_quality")) || 90));
 
@@ -99,16 +98,13 @@ export async function POST(req: Request) {
       const isVideoFile = isVideoExtension(extension) || file.type.startsWith("video/");
 
       if (!ALLOWED_EXTENSIONS.has(extension) && !isVideoFile) {
-        continue;
+        return Response.json({ error: "unsupported_file" }, { status: 400 });
       }
 
       const arrayBuffer = await file.arrayBuffer();
       const inputBuffer = Buffer.from(arrayBuffer);
 
-      const ordinal =
-        Number.isFinite(fileIndexOverride) && files.length === 1
-          ? Math.max(1, Math.trunc(fileIndexOverride))
-          : index + 1;
+      const ordinal = index + 1;
 
       if (isVideoFile) {
         const webmBuffer = await convertVideoToWebM(inputBuffer);
