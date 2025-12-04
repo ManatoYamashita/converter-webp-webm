@@ -53,6 +53,8 @@ No automated tests exist. Before creating a PR, verify:
 - Quality slider (70) → Lower quality, smaller file size
 - Quality slider (100) → Higher quality, larger file size
 - Mixed images + videos (JPG format) → Images as .jpg, videos as .webm in ZIP
+- Mixed files (3 images + 2 videos) → ZIP contains 3 WebP + 2 WebM, order matches UI
+- ZIP filename (mixed files) → `<baseName>_converted.zip`
 - Invalid file type (unsupported) → Toast error message displays
 - File size exceeds 20MB → Toast error message displays
 - Dark mode → All UI elements display correctly in dark theme
