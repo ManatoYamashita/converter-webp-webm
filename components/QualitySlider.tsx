@@ -39,7 +39,7 @@ export function QualitySlider({
         style={{
           '--value': percentage.toFixed(2),
         } as React.CSSProperties}
-        className="quality-slider w-full h-2 rounded-full appearance-none cursor-pointer
+        className="quality-slider w-full h-6 rounded-full appearance-none cursor-pointer
           disabled:opacity-60 disabled:cursor-not-allowed"
       />
       <div className="flex items-center justify-between text-xs text-slate-500 dark:text-dark-text-secondary">

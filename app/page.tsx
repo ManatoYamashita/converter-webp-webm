@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Sortable, { SortableEvent } from "sortablejs";
-import clsx from "clsx";
 import { X, Upload, Trash2, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -461,12 +460,7 @@ export default function HomePage() {
               />
             </section>
 
-            <div
-              className={clsx(
-                "transition-all duration-200",
-                hasItems ? "max-h-72" : "max-h-96"
-              )}
-            >
+            <div className="transition-all duration-200">
               <UploadDropzone
                 dropRef={dropRef}
                 fileInputRef={fileInputRef}
