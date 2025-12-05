@@ -14,7 +14,7 @@ import { StickyConvertButton } from "@/components/StickyConvertButton";
 import { FloatingUploader } from "@/components/FloatingUploader";
 import { FormatSelector } from "@/components/FormatSelector";
 import { QualitySlider } from "@/components/QualitySlider";
-import { FileItem, ImageFormat } from "@/components/types";
+import { FileItem, OutputFormat } from "@/components/types";
 import { ALLOWED_EXTENSIONS, MAX_FILES, sanitizeFilename } from "@/lib/sanitizeFilename";
 
 const SITE_URL = process.env.NEXT_PUBLIC_URL || "https://2ewbp.manapuraza.com";
@@ -71,7 +71,7 @@ export default function HomePage() {
   const [isDropActive, setIsDropActive] = useState(false);
   const [isUploaderVisible, setIsUploaderVisible] = useState(true);
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
-  const [imageFormat, setImageFormat] = useState<ImageFormat>("webp");
+  const [outputFormat, setOutputFormat] = useState<OutputFormat>("webp_webm");
   const [imageQuality, setImageQuality] = useState(90);
   const dragDepthRef = useRef(0);
   const structuredData = [
@@ -81,7 +81,7 @@ export default function HomePage() {
       name: "Converter WebP/WebM",
       url: SITE_URL,
       description:
-        "Convert JPG, JPEG, PNG, AVIF, SVG, HEIC images to WebP and MP4, MOV, MKV, AVI, WEBM, M4V to WebM with drag-and-drop, reordering, and sequential naming.",
+        "Convert JPG, JPEG, PNG, AVIF, SVG, HEIC images to WebP or JPG and MP4, MOV, MKV, AVI, WEBM, M4V to WebM or MP4 with drag-and-drop, reordering, and sequential naming.",
       potentialAction: {
         "@type": "Action",
         name: "Convert media to WebP/WebM",
@@ -107,7 +107,7 @@ export default function HomePage() {
       },
       url: SITE_URL,
       description:
-        "Batch convert images to WebP and videos to WebM, maintain order, and export as ZIP for web performance optimization.",
+        "Batch convert images to WebP/JPG and videos to WebM/MP4, maintain order, and export as ZIP for web performance optimization.",
     },
   ];
 
@@ -319,9 +319,13 @@ export default function HomePage() {
     setIsConverting(true);
 
     try {
+      const imageFormat = outputFormat === "jpg_mp4" ? "jpg" : "webp";
+      const videoFormat = outputFormat === "jpg_mp4" ? "mp4" : "webm";
+
       const formData = new FormData();
       formData.append("base_name", safeBaseName);
       formData.append("image_format", imageFormat);
+      formData.append("video_format", videoFormat);
       formData.append("image_quality", imageQuality.toString());
 
       // 全ファイルを1つの FormData に追加
@@ -352,12 +356,16 @@ export default function HomePage() {
         downloadBlob(blob, filename);
       } else {
         // 単一ファイル → 直接ダウンロード
+        const headerFilename =
+          response.headers.get("content-disposition")?.match(/filename=\"([^"]+)\"/)?.[1] || null;
         const ext = contentType.includes("video/webm")
           ? "webm"
+          : contentType.includes("video/mp4")
+          ? "mp4"
           : imageFormat === "jpg"
           ? "jpg"
           : "webp";
-        downloadBlob(blob, `${safeBaseName}_1.${ext}`);
+        downloadBlob(blob, headerFilename ?? `${safeBaseName}_1.${ext}`);
       }
 
       toast.success("Conversion completed successfully.");
@@ -442,8 +450,8 @@ export default function HomePage() {
 
             <section className="flex flex-col gap-4">
               <FormatSelector
-                selectedFormat={imageFormat}
-                onFormatChange={setImageFormat}
+                selectedFormat={outputFormat}
+                onFormatChange={setOutputFormat}
                 disabled={isConverting}
               />
               <QualitySlider
@@ -456,7 +464,7 @@ export default function HomePage() {
             <div
               className={clsx(
                 "transition-all duration-200",
-                hasItems && "h-1/2 min-h-[140px]"
+                hasItems ? "max-h-72" : "max-h-96"
               )}
             >
               <UploadDropzone
@@ -604,7 +612,9 @@ export default function HomePage() {
                 <ul className="space-y-2 text-sm text-slate-600 dark:text-dark-text-secondary">
                   <li><span className="font-semibold text-slate-700 dark:text-dark-text-primary">Max files:</span> 25 files</li>
                   <li><span className="font-semibold text-slate-700 dark:text-dark-text-primary">Image output:</span> WebP or JPG format (quality 70-100, default 90)</li>
-                  <li><span className="font-semibold text-slate-700 dark:text-dark-text-primary">Video output:</span> WebM format (VP9 + Opus)</li>
+                  <li>
+                    <span className="font-semibold text-slate-700 dark:text-dark-text-primary">Video output:</span> WebM (VP9 + Opus) or MP4 (H.264 + AAC)
+                  </li>
                   <li><span className="font-semibold text-slate-700 dark:text-dark-text-primary">Filename format:</span> {`<base>_<index>.webp`} or {`.webm`}</li>
                   <li><span className="font-semibold text-slate-700 dark:text-dark-text-primary">HEIC/HEIF support:</span> Converts Apple device photos seamlessly</li>
                 </ul>
