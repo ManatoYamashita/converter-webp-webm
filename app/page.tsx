@@ -408,7 +408,7 @@ export default function HomePage() {
             dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
           />
           <div className="flex flex-col items-center text-center opacity-0 animate-fade-in-up-delay-1">
-            <AppHeader onHelpClick={() => setIsHelpModalOpen(true)} />
+            <AppHeader onHelpClick={() => setIsHelpModalOpen(true)} isCompact={hasItems} />
           </div>
 
           <form className="flex flex-col gap-8" onSubmit={handleSubmit}>
