@@ -1,7 +1,7 @@
 # Converter WebP/WebM 仕様書
 
 ## 1. プロダクト概要
-Converter WebP/WebM は Next.js App Router + TypeScript で構築された WebP / WebM 変換ツールです。ユーザーは画像（JPG/JPEG/PNG/AVIF/SVG/HEIC/HEIF/TIFF/BMP/GIF）と動画（MP4/MOV/MKV/AVI/WEBM/M4V）を最大 25 件まとめてアップロードし、ドラッグ&ドロップで順序を調整したうえで WebP（画像）または WebM（動画）へ変換できます。サーバーサイドで `heic-convert` + `sharp`（画像）と `ffmpeg`（動画）を用いた変換を行い、単一ファイルは直接、複数ファイルは ZIP でダウンロードできます。ダークモードを標準搭載し、モダンで洗練されたUIを提供します。
+Converter WebP/WebM は Next.js App Router + TypeScript で構築された WebP / WebM 変換ツールです。ユーザーは画像（JPG/JPEG/PNG/AVIF/SVG/HEIC/HEIF/TIFF/BMP/GIF）と動画（MP4/MOV/MKV/AVI/WEBM/M4V）を最大 25 件まとめてアップロードし、ドラッグ&ドロップで順序を調整したうえで WebP または JPG（画像）、WebM または MP4（動画）へ変換できます。サーバーサイドで `heic-convert` + `sharp`（画像）と `ffmpeg`（動画）を用いた変換を行い、単一ファイルは直接、複数ファイルは ZIP でダウンロードできます。ダークモードを標準搭載し、モダンで洗練されたUIを提供します。
 
 ## 2. 提供価値
 - **運用効率化**: 大量画像の WebP 化・連番リネーム・一括ダウンロードを 1 画面で完結。
@@ -30,22 +30,22 @@ Converter WebP/WebM は Next.js App Router + TypeScript で構築された WebP 
 - 最大 25 件まで保持。未対応拡張子はフロントで追加を拒否し、API でも 400 `unsupported_file` を返す
 - ファイル追加は入力ボタンまたはドラッグ&ドロップ。`SortableJS` で並べ替え、削除ボタンで個別除外
 - **HEIC/HEIF 対応**: Apple デバイスで撮影された HEIC/HEIF も WebP に変換可能
-- **動画対応**: 対応拡張子の動画を自動判別し、WebM に変換
+- **動画対応**: 対応拡張子の動画を自動判別し、WebM または MP4 に変換
 
 ### 4.2 ベース名指定
 - 初期値は `image`。入力値はクライアント・サーバー双方で `sanitizeFilename` により危険文字排除
-- 生成ファイル名は `<base>_<index>.webp`（1 始まり、並び順に依存）
+- 生成ファイル名は `<base>_<index>.webp` または `<base>_<index>.jpg` / `<base>_<index>.mp4`（1 始まり、並び順に依存）
 
 ### 4.3 変換処理
-- クライアントは全ファイルを1つの `POST /api/convert` リクエストで送信（`base_name`, `image_format`, `image_quality`, `files[]`）。サーバー側で順序を保持したまま変換
+- クライアントは全ファイルを1つの `POST /api/convert` リクエストで送信（`base_name`, `image_format`, `video_format`, `image_quality`, `files[]`）。サーバー側で順序を保持したまま変換
 - API はバリデーション（拡張子、件数）を行い、以下のフローで変換:
-  1. **動画 (`mp4`, `mov`, `mkv`, `avi`, `webm`, `m4v`)**: `ffmpeg` で VP9（libvpx-vp9）+ Opus に再エンコードし WebM を生成（MIME タイプ `video/*` でも動画判定）
+  1. **動画 (`mp4`, `mov`, `mkv`, `avi`, `webm`, `m4v`)**: `ffmpeg` で WebM (VP9 + Opus) または MP4 (H.264 + AAC) に再エンコード（MIME タイプ `video/*` でも動画判定）
   2. **画像 (HEIC/HEIF)**: `heic-convert` で JPEG（品質 1）へ変換 → `sharp` で WebP/JPG（品質 70-100、デフォルト 90、`rotate()` で EXIF 補正）
   3. **画像 (その他)**: `sharp` で WebP/JPG（品質 70-100、デフォルト 90）
-  4. **フォーマット選択**: ユーザーが WebP または JPG を選択可能（デフォルト WebP）
+  4. **フォーマット選択**: ユーザーが WebP/WEBM または JPG/MP4 を選択可能（デフォルト WebP/WEBM）
   5. **品質調整**: スライダーで 70-100 の範囲で品質を調整可能（デフォルト 90）
-- 単一ファイル: WebP/JPG または WebM をバイナリ返却
-- 複数ファイル: サーバーでまとめて ZIP 化し、`<base>_converted.zip` として返却（WebP/JPG/WebM 混在可能）
+- 単一ファイル: WebP/JPG または WebM/MP4 をバイナリ返却
+- 複数ファイル: サーバーでまとめて ZIP 化し、`<base>_converted.zip` として返却（WebP/JPG/WebM/MP4 混在可能）
 - エラー時は JSON `{ error: "<code>" }` を返し、フロント側でエラーメッセージを表示
 - **注意**: WebP のみ animated GIF のアニメーション保持が可能。JPG 変換では最初のフレームのみが保存される
 
