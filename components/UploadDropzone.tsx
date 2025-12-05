@@ -46,8 +46,8 @@ export function UploadDropzone({
         onDrop(event);
       }}
       className={clsx(
-        "relative flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-slate-300 dark:border-dark-border-DEFAULT bg-slate-50/70 dark:bg-dark-bg-tertiary/50 p-8 text-center transition-colors",
-        isCompact ? "h-[100px]" : "min-h-[220px]",
+        "relative flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 dark:border-dark-border-DEFAULT bg-slate-50/70 dark:bg-dark-bg-tertiary/50 text-center transition-colors",
+        isCompact ? "min-h-[165px] p-6 gap-3" : "min-h-[220px] p-8 gap-4",
         isDropActive
           ? "border-brand-400 dark:border-brand-500 bg-brand-50/80 dark:bg-brand-900/20"
           : "hover:border-brand-400 dark:hover:border-brand-500 hover:bg-white dark:hover:bg-dark-bg-secondary",
