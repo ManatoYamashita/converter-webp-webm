@@ -5,11 +5,11 @@ export type FileItem = {
   sizeLabel: string;
 };
 
-export type ImageFormat = "webp" | "jpg";
+export type OutputFormat = "webp_webm" | "jpg_mp4";
 
 export type FormatSelectorProps = {
-  selectedFormat: ImageFormat;
-  onFormatChange: (format: ImageFormat) => void;
+  selectedFormat: OutputFormat;
+  onFormatChange: (format: OutputFormat) => void;
   disabled: boolean;
 };
 

@@ -33,23 +33,29 @@ function isHeicExtension(extension: string): boolean {
   return HEIC_EXTENSIONS.has(extension);
 }
 
-async function convertVideoToWebM(inputBuffer: Buffer): Promise<Buffer> {
+async function convertVideo(inputBuffer: Buffer, format: "webm" | "mp4"): Promise<Buffer> {
   const tempInputPath = join(tmpdir(), `input-${Date.now()}-${Math.random().toString(36).slice(2)}`);
-  const tempOutputPath = join(tmpdir(), `output-${Date.now()}-${Math.random().toString(36).slice(2)}.webm`);
+  const tempOutputPath = join(tmpdir(), `output-${Date.now()}-${Math.random().toString(36).slice(2)}.${format}`);
 
   try {
     await writeFile(tempInputPath, inputBuffer);
 
     await new Promise<void>((resolve, reject) => {
-      ffmpeg(tempInputPath)
-        .videoCodec("libvpx-vp9")
-        .audioCodec("libopus")
-        .outputOptions([
-          "-crf 30",
-          "-b:v 0",
-          "-b:a 128k",
-          "-cpu-used 2",
-        ])
+      const command = ffmpeg(tempInputPath);
+
+      if (format === "webm") {
+        command
+          .videoCodec("libvpx-vp9")
+          .audioCodec("libopus")
+          .outputOptions(["-crf 30", "-b:v 0", "-b:a 128k", "-cpu-used 2"]);
+      } else {
+        command
+          .videoCodec("libx264")
+          .audioCodec("aac")
+          .outputOptions(["-crf 23", "-preset veryfast", "-movflags +faststart", "-b:a 128k"]);
+      }
+
+      command
         .output(tempOutputPath)
         .on("end", () => resolve())
         .on("error", (err) => reject(err))
@@ -78,7 +84,8 @@ export async function POST(req: Request) {
     const formData = await req.formData();
     const baseName = sanitizeFilename(formData.get("base_name")?.toString());
     const files = formData.getAll("files") as File[];
-    const imageFormat = (formData.get("image_format")?.toString() || "webp") as "webp" | "jpg";
+    const imageFormat = (formData.get("image_format")?.toString() || "webp") === "jpg" ? "jpg" : "webp";
+    const videoFormat = (formData.get("video_format")?.toString() || "webm") === "mp4" ? "mp4" : "webm";
     const imageQuality = Math.min(100, Math.max(70, Number(formData.get("image_quality")) || 90));
 
     if (!files.length) {
@@ -107,10 +114,10 @@ export async function POST(req: Request) {
       const ordinal = index + 1;
 
       if (isVideoFile) {
-        const webmBuffer = await convertVideoToWebM(inputBuffer);
+        const videoBuffer = await convertVideo(inputBuffer, videoFormat);
         converted.push({
-          name: `${baseName}_${ordinal}.webm`,
-          buffer: webmBuffer,
+          name: `${baseName}_${ordinal}.${videoFormat}`,
+          buffer: videoBuffer,
         });
       } else {
         let processBuffer = inputBuffer;
@@ -158,6 +165,8 @@ export async function POST(req: Request) {
 
       const contentType = single.name.endsWith(".webm")
         ? "video/webm"
+        : single.name.endsWith(".mp4")
+        ? "video/mp4"
         : single.name.endsWith(".jpg")
         ? "image/jpeg"
         : "image/webp";
