@@ -3,7 +3,7 @@ import type { MetadataRoute } from "next";
 const siteUrl = process.env.NEXT_PUBLIC_URL || "https://2ewbp.manapuraza.com";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const routes = [""].map((path) => ({
+  const routes: MetadataRoute.Sitemap = [""].map((path): MetadataRoute.Sitemap[number] => ({
     url: `${siteUrl}/${path}`,
     lastModified: new Date(),
     changeFrequency: "weekly",
