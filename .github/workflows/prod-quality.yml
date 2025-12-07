@@ -39,7 +39,7 @@ jobs:
       - name: Wait for Next.js hydration
         run: |
           echo "Waiting for Next.js to fully initialize and hydrate..."
-          sleep 10
+          sleep 20
           echo "Checking server logs:"
           tail -n 50 /tmp/next.log || true
 
@@ -56,10 +56,30 @@ jobs:
             exit 1
           fi
 
-      - name: Lighthouse audit
+      - name: Lighthouse audit (1 retry on NO_FCP)
         id: lighthouse
         continue-on-error: true # Lighthouseが失敗してもワークフロー全体は成功させる
-        run: npx @lhci/cli@0.13.0 autorun
+        run: |
+          set +e
+          echo "Running Lighthouse (attempt 1)..."
+          npx @lhci/cli@0.13.0 autorun
+          EXIT_CODE=$?
+
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "First Lighthouse run failed (exit $EXIT_CODE). Waiting 15s and retrying..."
+            sleep 15
+            npx @lhci/cli@0.13.0 autorun
+            EXIT_CODE=$?
+          fi
+
+          echo "exit_code=$EXIT_CODE" >> "$GITHUB_OUTPUT"
+          exit $EXIT_CODE
+
+      - name: Dump Next.js logs on Lighthouse failure
+        if: steps.lighthouse.outcome == 'failure'
+        run: |
+          echo "Lighthouse failed. Dumping /tmp/next.log for debugging..."
+          tail -n 200 /tmp/next.log || true
 
       - name: Upload Lighthouse results
         if: always()

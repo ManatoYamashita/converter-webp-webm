@@ -4,9 +4,9 @@ module.exports = {
       url: ['http://localhost:3000'],
       numberOfRuns: 1,
       settings: {
-        maxWaitForLoad: 90000, // 90秒待機（CI環境でのNext.js hydration対応）
-        maxWaitForFcp: 90000, // FCP待機も90秒に延長
-        pauseAfterLoadMs: 5000, // ページロード後に5秒追加待機
+        maxWaitForLoad: 120000, // 120秒待機（CI環境でのNext.js hydration対応）
+        maxWaitForFcp: 120000, // FCP待機も120秒に延長
+        pauseAfterLoadMs: 8000, // ページロード後に8秒追加待機
         onlyCategories: ['performance'], // パフォーマンスカテゴリのみに絞る
         skipAudits: ['screenshot-thumbnails', 'final-screenshot'], // 重いauditをスキップ
         chromeFlags: [

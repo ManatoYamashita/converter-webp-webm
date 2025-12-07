@@ -63,6 +63,7 @@ body {
   background-color: #2196F3;
   cursor: pointer;
   transition: transform 150ms ease;
+  margin-top: -6px; /* Center thumb vertically on 8px track */
 }
 
 .dark .quality-slider::-webkit-slider-thumb {
@@ -102,6 +103,7 @@ body {
   border: none;
   cursor: pointer;
   transition: transform 150ms ease;
+  margin-top: -6px; /* Center thumb vertically on 8px track */
 }
 
 .dark .quality-slider::-moz-range-thumb {

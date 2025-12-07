@@ -25,7 +25,8 @@ docs/
 - `docs/specs/spec.md`: Next.js 16 + Node Runtime 構成、画像 WebP/JPG + 動画 WebM/MP4 変換（Sharp + heic-convert + ffmpeg）、対応フォーマットと制約値を記載。
 - `docs/design/design-system.md`: カラーパレット、タイポグラフィ、UIコンポーネントパターン、ダークモード実装などデザインシステム全体を網羅。
 - `docs/dev/branch.md`: `main` ブランチ保護方針、ブランチ命名、コミット/PR テンプレートを定義。Git リモート設定（origin vs personal）、push 先の指定方法、デフォルトの追跡ブランチ設定を記載（2025-01-24更新）。
-- `docs/dev/ci-lighthouse.md`: GitHub Actions の Lighthouse CI 設定と NO_FCP（First Contentful Paint）エラーのトラブルシューティング。wait-on 設定強化、Next.js hydration 待機、Chrome flags、パフォーマンス閾値を記載（2025-01-24追加）。
+- `docs/dev/ci-lighthouse.md`: GitHub Actions の Lighthouse CI 設定と NO_FCP（First Contentful Paint）エラーのトラブルシューティング。wait-on 設定強化、Next.js hydration 待機延長、Lighthouse再実行リトライ、Chrome flags、パフォーマンス閾値を記載（2025-01-24更新）。
+- `app/robots.ts` / `app/sitemap.ts`: NEXT_PUBLIC_URL を基準に robots.txt と sitemap.xml を自動生成し、SEO クローラビリティを保証。
 - `docs/dev/turbopack-support.md`: Turbopack のサポート状況と本番ビルドへの移行ガイド。
 - `docs/dev/next16-upgrade.md`: Next.js 16 および React 19 へのアップグレード詳細記録（2025-11-22実施）。
 - `docs/dev/cve-2025-55182-security-patch.md`: CVE-2025-55182（React Server Components RCE脆弱性）のセキュリティパッチ対応記録。React 19.2.1、Next.js 16.0.7 へのアップグレード、追加の glob 脆弱性修正を含む（2025-12-07実施）。

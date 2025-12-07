@@ -43,17 +43,18 @@ runtimeError: {
 - name: Wait for Next.js hydration
   run: |
     echo "Waiting for Next.js to fully initialize and hydrate..."
-    sleep 10
+    sleep 20
     echo "Checking server logs:"
     tail -n 50 /tmp/next.log || true
 ```
-**Why 10 seconds?**
+**Why 20 seconds?**
 - `app/page.tsx` contains multiple `useEffect` hooks (184-281 lines) that initialize:
   - SortableJS (drag-and-drop library)
   - IntersectionObserver (floating button visibility)
   - Structured Data JSON-LD generation
 - React 19's Selective Hydration can delay client component hydration
 - CI environment CPU throttling adds 2-3x overhead
+- Headless Chrome + Next.js 16 が稀に NO_FCP を出すため、さらに余裕を持たせる
 
 #### 3. Content Verification
 ```yaml
@@ -93,9 +94,9 @@ module.exports = {
       url: ['http://localhost:3000'],
       numberOfRuns: 1,
       settings: {
-        maxWaitForLoad: 90000, // 90 seconds for page load
-        maxWaitForFcp: 90000, // 90 seconds for First Contentful Paint
-        pauseAfterLoadMs: 5000, // Additional 5s wait after load event
+        maxWaitForLoad: 120000, // 120 seconds for page load
+        maxWaitForFcp: 120000, // 120 seconds for First Contentful Paint
+        pauseAfterLoadMs: 8000, // Additional 8s wait after load event
         chromeFlags: [
           '--no-sandbox',
           '--disable-dev-shm-usage',
@@ -116,8 +117,9 @@ module.exports = {
 
 **Key Settings:**
 - `maxWaitForLoad=90000`: Extended page load wait time to 90 seconds (default: 45s insufficient for CI)
-- `maxWaitForFcp=90000`: Extended FCP-specific wait time to 90 seconds
-- `pauseAfterLoadMs=5000`: Additional 5-second wait after load event to ensure full hydration
+- `maxWaitForLoad=120000`: Extended page load wait time to 120 seconds (default: 45s insufficient for CI)
+- `maxWaitForFcp=120000`: Extended FCP-specific wait time to 120 seconds
+- `pauseAfterLoadMs=8000`: Additional 8-second wait after load event to ensure full hydration
 - Chrome flags (CI environment optimizations):
   - `--no-sandbox`: Required for CI environments (security constraint)
   - `--disable-dev-shm-usage`: Prevents `/dev/shm` memory issues
@@ -178,7 +180,9 @@ pkill -f "next start"
 
 5. **Check maxWaitForFcp**: In `.lighthouserc.js`, ensure `maxWaitForFcp` is set to 90000 or higher. This is separate from `maxWaitForLoad` and specifically controls FCP timeout.
 
-6. **Add pauseAfterLoadMs**: In `.lighthouserc.js`, add `pauseAfterLoadMs: 5000` to wait an additional 5 seconds after the load event before running audits.
+6. **Add pauseAfterLoadMs**: In `.lighthouserc.js`, add `pauseAfterLoadMs: 8000` to wait an additional 8 seconds after the load event before running audits.
+
+7. **Retry once before giving up**: CI step `Lighthouse audit (1 retry on NO_FCP)` retries after a 15s sleep. This mitigates intermittent NO_FCP without failing the workflow.
 
 ### False Positives (Performance Threshold Exceeded)
 
