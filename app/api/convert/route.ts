@@ -116,7 +116,7 @@ export async function POST(req: Request) {
       if (isVideoFile) {
         const videoBuffer = await convertVideo(inputBuffer, videoFormat);
         converted.push({
-          name: `${baseName}_${ordinal}.${videoFormat}`,
+          name: `${baseName}_${ordinal}_${videoFormat}`,
           buffer: videoBuffer,
         });
       } else {
@@ -145,8 +145,9 @@ export async function POST(req: Request) {
             .toBuffer();
         }
 
+        const mimeType = imageFormat === "jpg" ? "jpg" : "webp";
         converted.push({
-          name: `${baseName}_${ordinal}.${imageFormat === "jpg" ? "jpg" : "webp"}`,
+          name: `${baseName}_${ordinal}_${mimeType}`,
           buffer: outputBuffer,
         });
       }
@@ -163,13 +164,12 @@ export async function POST(req: Request) {
         single.buffer.byteOffset + single.buffer.byteLength
       ) as ArrayBuffer;
 
-      const contentType = single.name.endsWith(".webm")
-        ? "video/webm"
-        : single.name.endsWith(".mp4")
-        ? "video/mp4"
-        : single.name.endsWith(".jpg")
-        ? "image/jpeg"
-        : "image/webp";
+      const mimeType = single.name.split("_").pop() || "webp";
+      const contentType =
+        mimeType === "webm" ? "video/webm" :
+        mimeType === "mp4" ? "video/mp4" :
+        mimeType === "jpg" ? "image/jpeg" :
+        "image/webp";
 
       return new Response(body, {
         status: 200,

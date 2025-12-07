@@ -364,7 +364,7 @@ export default function HomePage() {
           : imageFormat === "jpg"
           ? "jpg"
           : "webp";
-        downloadBlob(blob, headerFilename ?? `${safeBaseName}_1.${ext}`);
+        downloadBlob(blob, headerFilename ?? `${safeBaseName}_1_${ext}`);
       }
 
       toast.success("Conversion completed successfully.");
@@ -424,9 +424,15 @@ export default function HomePage() {
                   className="w-full rounded-2xl border border-slate-200 dark:border-dark-border-DEFAULT bg-white dark:bg-dark-bg-tertiary px-4 py-3 text-base font-medium text-slate-800 dark:text-dark-text-primary outline-none transition focus:border-brand-400 dark:focus:border-brand-500 focus:shadow-[0_0_0_4px_rgba(33,150,243,0.12)] dark:focus:shadow-[0_0_0_4px_rgba(33,150,243,0.2)] placeholder:text-slate-400 dark:placeholder:text-dark-text-muted"
                   disabled={isConverting}
                   onKeyDown={(event) => {
-                    if (event.key === "Enter" && !hasItems) {
+                    if (event.key === "Enter") {
                       event.preventDefault();
-                      fileInputRef.current?.click();
+                      if (hasItems) {
+                        // Submit form to trigger conversion
+                        event.currentTarget.form?.requestSubmit();
+                      } else {
+                        // Open file picker
+                        fileInputRef.current?.click();
+                      }
                     }
                   }}
                 />
@@ -546,6 +552,7 @@ export default function HomePage() {
       <StickyConvertButton
         hasItems={hasItems}
         isConverting={isConverting}
+        outputFormat={outputFormat}
         onConvert={() => {
           if (!isConverting && items.length > 0) {
             const form = document.querySelector('form');

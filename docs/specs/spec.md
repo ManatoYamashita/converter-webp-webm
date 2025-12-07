@@ -34,7 +34,31 @@ Converter WebP/WebM は Next.js App Router + TypeScript で構築された WebP 
 
 ### 4.2 ベース名指定
 - 初期値は `image`。入力値はクライアント・サーバー双方で `sanitizeFilename` により危険文字排除
-- 生成ファイル名は `<base>_<index>.webp` または `<base>_<index>.jpg` / `<base>_<index>.mp4`（1 始まり、並び順に依存）
+- 生成ファイル名は `{baseName}_{sequentialNumber}_{mimeType}` 形式（1 始まり、並び順に依存）
+  - 例: `product_1_webp`, `photo_2_jpg`, `video_3_webm`, `movie_4_mp4`
+  - **注意**: 拡張子（`.`）は含まれません。MIME タイプがサフィックスとして付与されます
+
+#### 4.2.1 ファイル名形式詳細（v2.1.0以降）
+
+**形式:** `{baseName}_{sequentialNumber}_{mimeType}`
+
+**構成要素:**
+- `baseName`: ユーザー指定のベース名（デフォルト: `image`）
+- `sequentialNumber`: 1から始まる連番（アップロード順）
+- `mimeType`: 出力形式に応じた MIME タイプ（`webp`, `jpg`, `webm`, `mp4`）
+
+**出力例:**
+- 画像（WebP）: `product_1_webp`, `product_2_webp`, `product_3_webp`
+- 画像（JPG）: `photo_1_jpg`, `photo_2_jpg`
+- 動画（WebM）: `video_1_webm`, `video_2_webm`
+- 動画（MP4）: `movie_1_mp4`, `movie_2_mp4`
+- 混在（WebP + WebM）: `mix_1_webp`, `mix_2_webm`, `mix_3_webp`
+
+**技術的詳細:**
+- **拡張子削除の理由**: 一部のブラウザやシステムで拡張子が誤認識される問題を回避
+- **Content-Type ヘッダー**: サーバーサイドで自動設定（`video/webm`, `video/mp4`, `image/jpeg`, `image/webp`）
+- **判定ロジック**: ファイル名から `split("_").pop()` で MIME タイプを抽出し、Content-Type を決定
+- **ZIP ファイル名**: 複数ファイルの場合、ZIP ファイル名は `{baseName}_converted.zip` のまま（変更なし）
 
 ### 4.3 変換処理
 - クライアントは全ファイルを1つの `POST /api/convert` リクエストで送信（`base_name`, `image_format`, `video_format`, `image_quality`, `files[]`）。サーバー側で順序を保持したまま変換
