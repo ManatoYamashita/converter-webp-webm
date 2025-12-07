@@ -17,6 +17,7 @@ docs/
    ├─ ci-lighthouse.md            ... Lighthouse CI 設定と NO_FCP エラー対策
    ├─ turbopack-support.md        ... Turbopack サポート状況と移行ガイド
    ├─ next16-upgrade.md           ... Next.js 16 アップグレードサマリー
+   ├─ cve-2025-55182-security-patch.md ... CVE-2025-55182 セキュリティパッチ対応記録
    └─ vercel-sharp-deployment.md  ... Vercel sharp デプロイエラー解決ガイド
 ```
 
@@ -27,6 +28,7 @@ docs/
 - `docs/dev/ci-lighthouse.md`: GitHub Actions の Lighthouse CI 設定と NO_FCP（First Contentful Paint）エラーのトラブルシューティング。wait-on 設定強化、Next.js hydration 待機、Chrome flags、パフォーマンス閾値を記載（2025-01-24追加）。
 - `docs/dev/turbopack-support.md`: Turbopack のサポート状況と本番ビルドへの移行ガイド。
 - `docs/dev/next16-upgrade.md`: Next.js 16 および React 19 へのアップグレード詳細記録（2025-11-22実施）。
+- `docs/dev/cve-2025-55182-security-patch.md`: CVE-2025-55182（React Server Components RCE脆弱性）のセキュリティパッチ対応記録。React 19.2.1、Next.js 16.0.7 へのアップグレード、追加の glob 脆弱性修正を含む（2025-12-07実施）。
 - `docs/dev/vercel-sharp-deployment.md`: Vercel デプロイ時の sharp モジュールエラー解決プロセス。serverExternalPackages 設定、postinstall スクリプト、クロスプラットフォーム依存関係の問題と解決方法を詳述（2025-11-24解決）。
 - `../README.md`: セットアップ手順とユーザー向け機能概要。
 - `../AGENTS.md`: コントリビュータ向けガイドライン（プロジェクト構造、開発コマンド、レビュー要件）。
@@ -45,9 +47,8 @@ docs/
 
 ---
 
-**最終更新日**: 2025-12-04
+**最終更新日**: 2025-12-07
 **更新内容**:
-- 混合ファイルアップロード対応とサーバー側 ZIP 生成を実装（`app/api/convert/route.ts`, `app/page.tsx`, `components/ProgressPanel.tsx`, `components/StickyConvertButton.tsx` 更新）。画像と動画を同時にアップロード可能とし、サーバー側で自動判別・変換・ZIP 生成を行う。通信効率向上（25リクエスト → 1リクエスト）、ZIP ファイル名統一（`_converted.zip`）、Indeterminate Progress Bar 実装。
-- `docs/specs/spec.md` Section 4.3 変換処理を更新（一括送信方式、混合ファイル対応明記）。
-- `CLAUDE.md` Manual Testing Checklist に混合ファイルテストケース追加。
-- `README.md` 主な機能セクション更新（混合ファイル対応、進捗表示説明改善）。
+- **セキュリティ対応**: CVE-2025-55182（React Server Components RCE脆弱性）のパッチ適用。React 19.2.0 → 19.2.1、Next.js 16.0.3 → 16.0.7 にアップグレード。追加で glob パッケージの脆弱性も修正（`npm audit` 結果: 0 vulnerabilities）。
+- `docs/dev/cve-2025-55182-security-patch.md` を新規作成（脆弱性詳細、アップグレード手順、検証結果、知見を記録）。
+- `docs/index.md` を更新（新規ドキュメントへのリンク追加、最終更新日更新）。
