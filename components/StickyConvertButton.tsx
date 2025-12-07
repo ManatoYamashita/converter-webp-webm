@@ -1,16 +1,19 @@
 import clsx from "clsx";
 import { Loader2 } from "lucide-react";
+import type { OutputFormat } from "./types";
 
 export type StickyConvertButtonProps = {
   hasItems: boolean;
   isConverting: boolean;
   onConvert: () => void;
+  outputFormat: OutputFormat;
 };
 
-export function StickyConvertButton({ hasItems, isConverting, onConvert }: StickyConvertButtonProps) {
+export function StickyConvertButton({ hasItems, isConverting, onConvert, outputFormat }: StickyConvertButtonProps) {
   if (!hasItems) return null;
 
-  const label = isConverting ? "Converting" : "Convert to WebP / WebM";
+  const formatLabel = outputFormat === "jpg_mp4" ? "JPG / MP4" : "WebP / WebM";
+  const label = isConverting ? "Converting" : `Convert to ${formatLabel}`;
 
   return (
     <div aria-live="polite" className="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center pb-6">

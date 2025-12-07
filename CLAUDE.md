@@ -43,18 +43,27 @@ npm run build        # Must complete successfully
 
 No automated tests exist. Before creating a PR, verify:
 
-- Single image conversion → WebP downloads correctly
-- Single image (JPG format) → .jpg downloads correctly
-- Single video conversion → WebM downloads correctly
-- Multiple images + reorder → ZIP file order matches UI
-- Multiple videos + mixed media → ZIP file order matches UI
-- HEIC/HEIF conversion → Converts to WebP successfully
-- Animated GIF → Converts to animated WebP
+**File Conversion & Naming (v2.1.0+):**
+- Single image (WebP) → Downloads as `{baseName}_1_webp` (no extension)
+- Single image (JPG format) → Downloads as `{baseName}_1_jpg` (no extension)
+- Single video (WebM) → Downloads as `{baseName}_1_webm` (no extension)
+- Single video (MP4 format) → Downloads as `{baseName}_1_mp4` (no extension)
+- Multiple images + reorder → ZIP contains `{baseName}_1_webp`, `{baseName}_2_webp`, etc. in UI order
+- Multiple videos + mixed media → ZIP file order matches UI, names follow `{baseName}_{ordinal}_{mimeType}` format
+- HEIC/HEIF conversion → Converts to WebP successfully as `{baseName}_1_webp`
+- Animated GIF → Converts to animated WebP as `{baseName}_1_webp`
+- Mixed images + videos (JPG format) → ZIP contains `{baseName}_1_jpg`, `{baseName}_2_mp4`, etc.
+- Mixed files (3 images + 2 videos) → ZIP contains files with correct MIME type suffixes, order matches UI
+- ZIP filename (mixed files) → `{baseName}_converted.zip`
+
+**Quality & Format Selection:**
 - Quality slider (70) → Lower quality, smaller file size
 - Quality slider (100) → Higher quality, larger file size
-- Mixed images + videos (JPG format) → Images as .jpg, videos as .webm in ZIP
-- Mixed files (3 images + 2 videos) → ZIP contains 3 WebP + 2 WebM, order matches UI
-- ZIP filename (mixed files) → `<baseName>_converted.zip`
+- Format selector (WebP/WebM) → StickyConvertButton displays "Convert to WebP / WebM"
+- Format selector (JPG/MP4) → StickyConvertButton displays "Convert to JPG / MP4"
+- Converting state → StickyConvertButton displays "Converting" (regardless of format)
+
+**Error Handling & UI:**
 - Invalid file type (unsupported) → Toast error message displays
 - File size exceeds 20MB → Toast error message displays
 - Dark mode → All UI elements display correctly in dark theme
