@@ -44,15 +44,15 @@ npm run build        # Must complete successfully
 No automated tests exist. Before creating a PR, verify:
 
 **File Conversion & Naming (v2.1.0+):**
-- Single image (WebP) → Downloads as `{baseName}_1_webp` (no extension)
-- Single image (JPG format) → Downloads as `{baseName}_1_jpg` (no extension)
-- Single video (WebM) → Downloads as `{baseName}_1_webm` (no extension)
-- Single video (MP4 format) → Downloads as `{baseName}_1_mp4` (no extension)
-- Multiple images + reorder → ZIP contains `{baseName}_1_webp`, `{baseName}_2_webp`, etc. in UI order
-- Multiple videos + mixed media → ZIP file order matches UI, names follow `{baseName}_{ordinal}_{mimeType}` format
-- HEIC/HEIF conversion → Converts to WebP successfully as `{baseName}_1_webp`
-- Animated GIF → Converts to animated WebP as `{baseName}_1_webp`
-- Mixed images + videos (JPG format) → ZIP contains `{baseName}_1_jpg`, `{baseName}_2_mp4`, etc.
+- Single image (WebP) → Downloads as `{baseName}_1.webp`
+- Single image (JPG format) → Downloads as `{baseName}_1.jpg`
+- Single video (WebM) → Downloads as `{baseName}_1.webm`
+- Single video (MP4 format) → Downloads as `{baseName}_1.mp4`
+- Multiple images + reorder → ZIP contains `{baseName}_1.webp`, `{baseName}_2.webp`, etc. in UI order
+- Multiple videos + mixed media → ZIP file order matches UI, names follow `{baseName}_{ordinal}.{mimeType}` format
+- HEIC/HEIF conversion → Converts to WebP successfully as `{baseName}_1.webp`
+- Animated GIF → Converts to animated WebP as `{baseName}_1.webp`
+- Mixed images + videos (JPG format) → ZIP contains `{baseName}_1.jpg`, `{baseName}_2.mp4`, etc.
 - Mixed files (3 images + 2 videos) → ZIP contains files with correct MIME type suffixes, order matches UI
 - ZIP filename (mixed files) → `{baseName}_converted.zip`
 

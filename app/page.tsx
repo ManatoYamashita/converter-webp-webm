@@ -364,7 +364,7 @@ export default function HomePage() {
           : imageFormat === "jpg"
           ? "jpg"
           : "webp";
-        downloadBlob(blob, headerFilename ?? `${safeBaseName}_1_${ext}`);
+        downloadBlob(blob, headerFilename ?? `${safeBaseName}_1.${ext}`);
       }
 
       toast.success("Conversion completed successfully.");

@@ -116,7 +116,7 @@ export async function POST(req: Request) {
       if (isVideoFile) {
         const videoBuffer = await convertVideo(inputBuffer, videoFormat);
         converted.push({
-          name: `${baseName}_${ordinal}_${videoFormat}`,
+          name: `${baseName}_${ordinal}.${videoFormat}`,
           buffer: videoBuffer,
         });
       } else {
@@ -147,7 +147,7 @@ export async function POST(req: Request) {
 
         const mimeType = imageFormat === "jpg" ? "jpg" : "webp";
         converted.push({
-          name: `${baseName}_${ordinal}_${mimeType}`,
+          name: `${baseName}_${ordinal}.${mimeType}`,
           buffer: outputBuffer,
         });
       }
