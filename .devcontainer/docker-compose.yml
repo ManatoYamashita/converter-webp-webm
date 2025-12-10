@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: converter-webp-webm-dev
+
+    tty: true
+    stdin_open: true
+
+    volumes:
+      # プロジェクトルートをマウント（cached: macOSパフォーマンス向上）
+      - ..:/workspace:cached
+
+      # node_modules を Named Volume として永続化（I/O遅延防止）
+      - node_modules:/workspace/node_modules
+
+    ports:
+      - "3000:3000"
+
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_URL=http://localhost:3000
+
+    working_dir: /workspace
+
+    command: sleep infinity
+
+    restart: unless-stopped
+
+# Named Volume定義
+volumes:
+  node_modules:
+    driver: local
