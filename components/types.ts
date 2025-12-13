@@ -18,3 +18,12 @@ export type QualitySliderProps = {
   onQualityChange: (quality: number) => void;
   disabled: boolean;
 };
+
+export type ConversionProgress = {
+  fileId: string;
+  fileName: string;
+  status: "pending" | "converting" | "completed" | "failed";
+  error?: string;
+  convertedBlob?: Blob;
+  convertedFileName?: string;
+};

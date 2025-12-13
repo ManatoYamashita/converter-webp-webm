@@ -13,7 +13,7 @@ import { StickyConvertButton } from "@/components/StickyConvertButton";
 import { FloatingUploader } from "@/components/FloatingUploader";
 import { FormatSelector } from "@/components/FormatSelector";
 import { QualitySlider } from "@/components/QualitySlider";
-import { FileItem, OutputFormat } from "@/components/types";
+import { FileItem, OutputFormat, ConversionProgress } from "@/components/types";
 import { ALLOWED_EXTENSIONS, MAX_FILES, sanitizeFilename } from "@/lib/sanitizeFilename";
 
 const SITE_URL = process.env.NEXT_PUBLIC_URL || "https://2ewbp.manapuraza.com";
@@ -72,6 +72,7 @@ export default function HomePage() {
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
   const [outputFormat, setOutputFormat] = useState<OutputFormat>("webp_webm");
   const [imageQuality, setImageQuality] = useState(90);
+  const [conversionProgress, setConversionProgress] = useState<ConversionProgress[]>([]);
   const dragDepthRef = useRef(0);
   const structuredData = [
     {
@@ -317,57 +318,127 @@ export default function HomePage() {
     const safeBaseName = sanitizeFilename(baseName);
     setIsConverting(true);
 
+    // 進捗状態の初期化
+    const initialProgress: ConversionProgress[] = items.map((item) => ({
+      fileId: item.id,
+      fileName: item.file.name,
+      status: "pending",
+    }));
+    setConversionProgress(initialProgress);
+
     try {
       const imageFormat = outputFormat === "jpg_mp4" ? "jpg" : "webp";
       const videoFormat = outputFormat === "jpg_mp4" ? "mp4" : "webm";
 
-      const formData = new FormData();
-      formData.append("base_name", safeBaseName);
-      formData.append("image_format", imageFormat);
-      formData.append("video_format", videoFormat);
-      formData.append("image_quality", imageQuality.toString());
+      // 各ファイルを順番に処理
+      for (let index = 0; index < items.length; index++) {
+        const item = items[index];
 
-      // 全ファイルを1つの FormData に追加
-      items.forEach((item) => {
-        formData.append("files", item.file, item.file.name);
-      });
+        // 進捗を「converting」に更新
+        setConversionProgress((prev) =>
+          prev.map((p) => (p.fileId === item.id ? { ...p, status: "converting" } : p))
+        );
 
-      const response = await fetch("/api/convert", {
-        method: "POST",
-        body: formData,
-      });
+        try {
+          // FormDataを作成（1ファイルのみ）
+          const formData = new FormData();
+          formData.append("base_name", safeBaseName);
+          formData.append("image_format", imageFormat);
+          formData.append("video_format", videoFormat);
+          formData.append("image_quality", imageQuality.toString());
+          formData.append("files", item.file, item.file.name);
 
-      if (!response.ok) {
-        const payload = (await response.json().catch(() => null)) as { error?: string } | null;
-        const message = resolveErrorMessage(payload?.error);
-        throw new Error(message);
+          // API呼び出し
+          const response = await fetch("/api/convert", {
+            method: "POST",
+            body: formData,
+          });
+
+          if (!response.ok) {
+            throw new Error(`Conversion failed for ${item.file.name}`);
+          }
+
+          const blob = await response.blob();
+          const contentType = response.headers.get("content-type") ?? "";
+          const headerFilename = response.headers
+            .get("content-disposition")
+            ?.match(/filename="([^"]+)"/)?.[1];
+
+          // 拡張子を決定
+          const ext = contentType.includes("video/webm")
+            ? "webm"
+            : contentType.includes("video/mp4")
+            ? "mp4"
+            : imageFormat === "jpg"
+            ? "jpg"
+            : "webp";
+
+          const convertedFileName = headerFilename ?? `${safeBaseName}_${index + 1}.${ext}`;
+
+          // 進捗を「completed」に更新
+          setConversionProgress((prev) =>
+            prev.map((p) =>
+              p.fileId === item.id
+                ? { ...p, status: "completed", convertedBlob: blob, convertedFileName }
+                : p
+            )
+          );
+        } catch (error) {
+          // 進捗を「failed」に更新
+          setConversionProgress((prev) =>
+            prev.map((p) =>
+              p.fileId === item.id
+                ? {
+                    ...p,
+                    status: "failed",
+                    error: error instanceof Error ? error.message : "Unknown error",
+                  }
+                : p
+            )
+          );
+        }
       }
 
-      // Content-Type でファイルタイプ判定
-      const contentType = response.headers.get("content-type") ?? "";
-      const blob = await response.blob();
+      // 成功したファイルのみ集約
+      const finalProgress = await new Promise<ConversionProgress[]>((resolve) => {
+        setConversionProgress((prev) => {
+          resolve(prev);
+          return prev;
+        });
+      });
 
-      if (contentType === "application/zip") {
-        // 複数ファイル → ZIP
-        const filename = response.headers
-          .get("content-disposition")
-          ?.match(/filename="([^"]+)"/)?.[1] || `${safeBaseName}_converted.zip`;
-        downloadBlob(blob, filename);
+      const successfulFiles = finalProgress.filter((p) => p.status === "completed");
+
+      if (successfulFiles.length === 0) {
+        throw new Error("All files failed to convert");
+      }
+
+      // 単一ファイル vs 複数ファイル
+      if (successfulFiles.length === 1) {
+        const single = successfulFiles[0];
+        downloadBlob(single.convertedBlob!, single.convertedFileName!);
       } else {
-        // 単一ファイル → 直接ダウンロード
-        const headerFilename =
-          response.headers.get("content-disposition")?.match(/filename=\"([^"]+)\"/)?.[1] || null;
-        const ext = contentType.includes("video/webm")
-          ? "webm"
-          : contentType.includes("video/mp4")
-          ? "mp4"
-          : imageFormat === "jpg"
-          ? "jpg"
-          : "webp";
-        downloadBlob(blob, headerFilename ?? `${safeBaseName}_1.${ext}`);
+        // クライアント側でZIP生成
+        const JSZip = (await import("jszip")).default;
+        const zip = new JSZip();
+
+        successfulFiles.forEach((file) => {
+          zip.file(file.convertedFileName!, file.convertedBlob!);
+        });
+
+        const zipBlob = await zip.generateAsync({ type: "blob" });
+        downloadBlob(zipBlob, `${safeBaseName}_converted.zip`);
       }
 
-      toast.success("Conversion completed successfully.");
+      toast.success(`Conversion completed: ${successfulFiles.length}/${items.length} files`);
+
+      // 失敗したファイルがあればToast表示
+      const failedFiles = finalProgress.filter((p) => p.status === "failed");
+      if (failedFiles.length > 0) {
+        toast.error(`Failed to convert ${failedFiles.length} file(s)`);
+      }
+
+      // ファイルリストをクリア
       setItems((prev) => {
         prev.forEach((item) => URL.revokeObjectURL(item.previewUrl));
         return [];
@@ -380,6 +451,7 @@ export default function HomePage() {
       }
     } finally {
       setIsConverting(false);
+      setConversionProgress([]);
     }
   };
 
@@ -483,7 +555,7 @@ export default function HomePage() {
               />
             </div>
 
-            {isConverting && <ProgressPanel />}
+            {isConverting && <ProgressPanel progress={conversionProgress} />}
 
             <section className="space-y-4 opacity-0 animate-fade-in-up-delay-3">
               <div className="flex items-center justify-between">
