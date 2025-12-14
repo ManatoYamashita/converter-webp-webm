@@ -373,7 +373,10 @@ export default function HomePage() {
             ? "jpg"
             : "webp";
 
-          const convertedFileName = headerFilename ?? `${safeBaseName}_${index + 1}.${ext}`;
+          const convertedFileName =
+            items.length === 1 && headerFilename
+              ? headerFilename
+              : `${safeBaseName}_${index + 1}.${ext}`;
 
           // 進捗を「completed」に更新
           setConversionProgress((prev) =>
