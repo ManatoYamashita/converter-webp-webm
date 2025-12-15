@@ -12,6 +12,7 @@ export const ALLOWED_EXTENSIONS = new Set([
   "jpg",
   "jpeg",
   "png",
+  "webp",
   "svg",
   "heic",
   "heif",

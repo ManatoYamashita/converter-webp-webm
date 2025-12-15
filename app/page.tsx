@@ -18,9 +18,9 @@ import { ALLOWED_EXTENSIONS, MAX_FILES, sanitizeFilename } from "@/lib/sanitizeF
 
 const SITE_URL = process.env.NEXT_PUBLIC_URL || "https://2ewbp.manapuraza.com";
 const SUPPORTED_FORMATS_LABEL =
-  "JPG / JPEG / PNG / AVIF / SVG / HEIC / HEIF / TIFF / BMP / GIF / MP4 / MOV / MKV / AVI / WEBM / M4V";
+  "JPG / JPEG / PNG / WEBP / AVIF / SVG / HEIC / HEIF / TIFF / BMP / GIF / MP4 / MOV / MKV / AVI / WEBM / M4V";
 const ACCEPT_TYPES =
-  ".jpg,.jpeg,.png,.avif,.svg,.heic,.heif,.tif,.tiff,.bmp,.gif,.mp4,.mov,.mkv,.avi,.webm,.m4v";
+  ".jpg,.jpeg,.png,.webp,.avif,.svg,.heic,.heif,.tif,.tiff,.bmp,.gif,.mp4,.mov,.mkv,.avi,.webm,.m4v";
 
 function formatFileSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -57,7 +57,7 @@ function resolveErrorMessage(code: string | undefined): string {
     case "no_valid_files":
       return "Conversion failed. Please try again.";
     case "unsupported_file":
-      return "Only JPG, JPEG, PNG, AVIF, SVG, HEIC, HEIF, TIFF, BMP, GIF, MP4, MOV, MKV, AVI, WEBM, M4V files are supported.";
+      return "Only JPG, JPEG, PNG, WEBP, AVIF, SVG, HEIC, HEIF, TIFF, BMP, GIF, MP4, MOV, MKV, AVI, WEBM, M4V files are supported.";
     default:
       return "Conversion failed. Please try again.";
   }
@@ -80,7 +80,7 @@ export default function HomePage() {
       name: "Converter WebP/WebM",
       url: SITE_URL,
       description:
-        "Convert JPG, JPEG, PNG, AVIF, SVG, HEIC images to WebP or JPG and MP4, MOV, MKV, AVI, WEBM, M4V to WebM or MP4 with drag-and-drop, reordering, and sequential naming.",
+        "Convert JPG, JPEG, PNG, WEBP, AVIF, SVG, HEIC images to WebP or JPG and MP4, MOV, MKV, AVI, WEBM, M4V to WebM or MP4 with drag-and-drop, reordering, and sequential naming.",
       potentialAction: {
         "@type": "Action",
         name: "Convert media to WebP/WebM",
@@ -161,7 +161,7 @@ export default function HomePage() {
         toast.error("Error: You can upload up to 25 files");
       } else if (rejectedUnsupported) {
         toast.error(
-          "Error: Only JPG, JPEG, PNG, AVIF, SVG, HEIC, HEIF, TIFF, BMP, GIF, MP4, MOV, MKV, AVI, WEBM, M4V files are supported."
+          "Error: Only JPG, JPEG, PNG, WEBP, AVIF, SVG, HEIC, HEIF, TIFF, BMP, GIF, MP4, MOV, MKV, AVI, WEBM, M4V files are supported."
         );
       }
     },
@@ -599,7 +599,7 @@ export default function HomePage() {
                 <div className="space-y-3 text-sm">
                   <div>
                     <p className="font-semibold text-slate-700 dark:text-dark-text-primary mb-1">Images</p>
-                    <p className="text-slate-600 dark:text-dark-text-secondary">JPG, JPEG, PNG, AVIF, SVG, HEIC, HEIF, TIFF, BMP, GIF</p>
+                    <p className="text-slate-600 dark:text-dark-text-secondary">JPG, JPEG, PNG, WEBP, AVIF, SVG, HEIC, HEIF, TIFF, BMP, GIF</p>
                   </div>
                   <div>
                     <p className="font-semibold text-slate-700 dark:text-dark-text-primary mb-1">Videos</p>

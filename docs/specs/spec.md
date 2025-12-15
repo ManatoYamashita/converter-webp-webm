@@ -1,7 +1,7 @@
 # Converter WebP/WebM 仕様書
 
 ## 1. プロダクト概要
-Converter WebP/WebM は Next.js App Router + TypeScript で構築された WebP / WebM 変換ツールです。ユーザーは画像（JPG/JPEG/PNG/AVIF/SVG/HEIC/HEIF/TIFF/BMP/GIF）と動画（MP4/MOV/MKV/AVI/WEBM/M4V）を最大 25 件まとめてアップロードし、ドラッグ&ドロップで順序を調整したうえで WebP または JPG（画像）、WebM または MP4（動画）へ変換できます。サーバーサイドで `heic-convert` + `sharp`（画像）と `ffmpeg`（動画）を用いた変換を行い、単一ファイルは直接、複数ファイルは ZIP でダウンロードできます。ダークモードを標準搭載し、モダンで洗練されたUIを提供します。
+Converter WebP/WebM は Next.js App Router + TypeScript で構築された WebP / WebM 変換ツールです。ユーザーは画像（JPG/JPEG/PNG/WEBP/AVIF/SVG/HEIC/HEIF/TIFF/BMP/GIF）と動画（MP4/MOV/MKV/AVI/WEBM/M4V）を最大 25 件まとめてアップロードし、ドラッグ&ドロップで順序を調整したうえで WebP または JPG（画像）、WebM または MP4（動画）へ変換できます。サーバーサイドで `heic-convert` + `sharp`（画像）と `ffmpeg`（動画）を用いた変換を行い、単一ファイルは直接、複数ファイルは ZIP でダウンロードできます。ダークモードを標準搭載し、モダンで洗練されたUIを提供します。
 
 ## 2. 提供価値
 - **運用効率化**: 大量画像の WebP 化・連番リネーム・一括ダウンロードを 1 画面で完結。
@@ -17,7 +17,7 @@ Converter WebP/WebM は Next.js App Router + TypeScript で構築された WebP 
 - **バンドラー**: Turbopack（Next.js 16 から組み込み済み）
 - **画像/動画変換**:
   - HEIC/HEIF: `heic-convert` で JPEG に変換（品質 1 = 最高品質）後、`sharp` で WebP（品質 90、`rotate()` で EXIF 補正）
-  - JPG/JPEG/PNG/AVIF/SVG/TIFF/BMP/GIF: `sharp` で WebP（品質 90、アニメーション対応）
+  - JPG/JPEG/PNG/WEBP/AVIF/SVG/TIFF/BMP/GIF: `sharp` で WebP（品質 90、アニメーション対応）
   - 動画: `ffmpeg`（PATH 上の `ffmpeg` または `FFMPEG_PATH` 指定のバイナリ） + `fluent-ffmpeg` で VP9 + Opus の WebM へ変換
 - **ZIP 生成**: サーバーサイドで `jszip` を使用して生成
 - **ユーティリティ**: `lib/sanitizeFilename.ts` にファイル名サニタイズ・制約定義（MAX_FILES, MAX_FILE_SIZE_BYTES, ALLOWED_EXTENSIONS）
@@ -25,7 +25,7 @@ Converter WebP/WebM は Next.js App Router + TypeScript で構築された WebP 
 
 ## 4. 機能要件
 ### 4.1 アップロード & 並べ替え
-- 受け付け拡張子（画像）: `jpg`, `jpeg`, `png`, `avif`, `svg`, `heic`, `heif`, `tif`, `tiff`, `bmp`, `gif`
+- 受け付け拡張子（画像）: `jpg`, `jpeg`, `png`, `webp`, `avif`, `svg`, `heic`, `heif`, `tif`, `tiff`, `bmp`, `gif`
 - 受け付け拡張子（動画）: `mp4`, `mov`, `mkv`, `avi`, `webm`, `m4v`
 - 最大 25 件まで保持。未対応拡張子はフロントで追加を拒否し、API でも 400 `unsupported_file` を返す
 - ファイル追加は入力ボタンまたはドラッグ&ドロップ。`SortableJS` で並べ替え、削除ボタンで個別除外
