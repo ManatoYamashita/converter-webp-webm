@@ -15,6 +15,7 @@ docs/
 └─ dev/
    ├─ branch.md                   ... ブランチ戦略・レビュー手順
    ├─ ci-lighthouse.md            ... Lighthouse CI 設定と NO_FCP エラー対策
+   ├─ devcontainer-guide.md       ... VS Code Dev Container 開発環境ガイド
    ├─ turbopack-support.md        ... Turbopack サポート状況と移行ガイド
    ├─ next16-upgrade.md           ... Next.js 16 アップグレードサマリー
    ├─ cve-2025-55182-security-patch.md ... CVE-2025-55182 セキュリティパッチ対応記録
@@ -26,6 +27,7 @@ docs/
 - `docs/design/design-system.md`: カラーパレット、タイポグラフィ、UIコンポーネントパターン、ダークモード実装などデザインシステム全体を網羅。
 - `docs/dev/branch.md`: `main` ブランチ保護方針、ブランチ命名、コミット/PR テンプレートを定義。Git リモート設定（origin vs personal）、push 先の指定方法、デフォルトの追跡ブランチ設定を記載（2025-01-24更新）。
 - `docs/dev/ci-lighthouse.md`: GitHub Actions の Lighthouse CI 設定と NO_FCP（First Contentful Paint）エラーのトラブルシューティング。wait-on 設定強化、Next.js hydration 待機延長、Lighthouse再実行リトライ、Chrome flags、パフォーマンス閾値を記載（2025-01-24更新）。
+- `docs/dev/devcontainer-guide.md`: VS Code Dev Container による開発環境構築ガイド。Node.js 20.9.0 + FFmpeg + ネイティブビルド環境（sharp、heic-convert）、Named Volume によるパフォーマンス最適化、VS Code拡張機能の自動インストール、トラブルシューティングを詳述（2025-12-10新規作成）。
 - `app/robots.ts` / `app/sitemap.ts`: NEXT_PUBLIC_URL を基準に robots.txt と sitemap.xml を自動生成し、SEO クローラビリティを保証。
 - `docs/dev/turbopack-support.md`: Turbopack のサポート状況と本番ビルドへの移行ガイド。
 - `docs/dev/next16-upgrade.md`: Next.js 16 および React 19 へのアップグレード詳細記録（2025-11-22実施）。
@@ -48,8 +50,9 @@ docs/
 
 ---
 
-**最終更新日**: 2025-12-07
+**最終更新日**: 2025-12-10
 **更新内容**:
-- **セキュリティ対応**: CVE-2025-55182（React Server Components RCE脆弱性）のパッチ適用。React 19.2.0 → 19.2.1、Next.js 16.0.3 → 16.0.7 にアップグレード。追加で glob パッケージの脆弱性も修正（`npm audit` 結果: 0 vulnerabilities）。
-- `docs/dev/cve-2025-55182-security-patch.md` を新規作成（脆弱性詳細、アップグレード手順、検証結果、知見を記録）。
+- **Devcontainer環境構築**: VS Code Dev Container による開発環境を構築。Node.js 20.9.0（Bookwormベース）、FFmpeg、libvips-dev、libheif-dev をシステムインストール。Named Volume による `node_modules` 永続化でパフォーマンス最適化（npm install が10倍以上高速化）。
+- `.devcontainer/Dockerfile`、`.devcontainer/docker-compose.yml`、`.devcontainer/devcontainer.json` を新規作成。
+- `docs/dev/devcontainer-guide.md` を新規作成（セットアップ手順、技術仕様、トラブルシューティング、将来の拡張方法を記載）。
 - `docs/index.md` を更新（新規ドキュメントへのリンク追加、最終更新日更新）。

@@ -81,6 +81,7 @@ Converter WebP/WebM は、Next.js 16 App Router で構築されたモダンな�
 |------------|--------|------|
 | JPEG | `.jpg`, `.jpeg` | 標準的な写真形式 |
 | PNG | `.png` | 透明度対応 |
+| WebP | `.webp` | 圧縮効率が高い次世代画像形式 |
 | AVIF | `.avif` | 次世代画像フォーマット |
 | SVG | `.svg` | ベクター画像 |
 | HEIC/HEIF | `.heic`, `.heif` | Apple デバイス標準 |
