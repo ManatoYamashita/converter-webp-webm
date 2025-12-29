@@ -19,6 +19,7 @@ docs/
    ├─ turbopack-support.md        ... Turbopack サポート状況と移行ガイド
    ├─ next16-upgrade.md           ... Next.js 16 アップグレードサマリー
    ├─ cve-2025-55182-security-patch.md ... CVE-2025-55182 セキュリティパッチ対応記録
+   ├─ cve-2025-55184-67779-55183-security-patch.md ... CVE-2025-55184/67779/55183 セキュリティパッチ対応記録
    └─ vercel-sharp-deployment.md  ... Vercel sharp デプロイエラー解決ガイド
 ```
 
@@ -32,6 +33,7 @@ docs/
 - `docs/dev/turbopack-support.md`: Turbopack のサポート状況と本番ビルドへの移行ガイド。
 - `docs/dev/next16-upgrade.md`: Next.js 16 および React 19 へのアップグレード詳細記録（2025-11-22実施）。
 - `docs/dev/cve-2025-55182-security-patch.md`: CVE-2025-55182（React Server Components RCE脆弱性）のセキュリティパッチ対応記録。React 19.2.1、Next.js 16.0.7 へのアップグレード、追加の glob 脆弱性修正を含む（2025-12-07実施）。
+- `docs/dev/cve-2025-55184-67779-55183-security-patch.md`: CVE-2025-55184/67779/55183（React Server Components DoS脆弱性とソースコード公開）のセキュリティパッチ対応記録。Next.js 16.0.7 → 16.0.10 へのアップグレード、package.json と node_modules の不整合解消を含む（2025-12-29実施）。
 - `docs/dev/vercel-sharp-deployment.md`: Vercel デプロイ時の sharp モジュールエラー解決プロセス。serverExternalPackages 設定、postinstall スクリプト、クロスプラットフォーム依存関係の問題と解決方法を詳述（2025-11-24解決）。
 - `../README.md`: セットアップ手順とユーザー向け機能概要。
 - `../AGENTS.md`: コントリビュータ向けガイドライン（プロジェクト構造、開発コマンド、レビュー要件）。
@@ -50,9 +52,10 @@ docs/
 
 ---
 
-**最終更新日**: 2025-12-10
+**最終更新日**: 2025-12-29
 **更新内容**:
-- **Devcontainer環境構築**: VS Code Dev Container による開発環境を構築。Node.js 20.9.0（Bookwormベース）、FFmpeg、libvips-dev、libheif-dev をシステムインストール。Named Volume による `node_modules` 永続化でパフォーマンス最適化（npm install が10倍以上高速化）。
-- `.devcontainer/Dockerfile`、`.devcontainer/docker-compose.yml`、`.devcontainer/devcontainer.json` を新規作成。
-- `docs/dev/devcontainer-guide.md` を新規作成（セットアップ手順、技術仕様、トラブルシューティング、将来の拡張方法を記載）。
+- **CVE-2025-55184/67779/55183 セキュリティパッチ適用**: Next.js 16.0.7 → 16.0.10 へのセキュリティアップデート。DoS脆弱性（無限ループ）とServer Function実装コードの漏洩リスクを排除。
+- `package.json`、`package-lock.json` を更新（Next.js 16.0.10、eslint-config-next 16.0.10）。
+- package.json と node_modules の不整合を解消（CVE-2025-55182対応時に未実施だった npm install を実行）。
+- `docs/dev/cve-2025-55184-67779-55183-security-patch.md` を新規作成（セキュリティパッチ対応記録、実行手順、影響評価、教訓を記載）。
 - `docs/index.md` を更新（新規ドキュメントへのリンク追加、最終更新日更新）。
