@@ -50,9 +50,12 @@ docs/
 
 ---
 
-**最終更新日**: 2025-12-10
+**最終更新日**: 2026-01-01
 **更新内容**:
+- **セキュリティ対応**: CVE-2025-55183/55184/67779 の追加パッチ適用。Next.js 16.0.7 → 16.0.10 にアップグレード。DoS 脆弱性とソースコード曝露リスクを完全に排除。
+- `docs/dev/cve-2025-55182-security-patch.md` を更新（追加CVE情報、アップグレード履歴を記録）。
+
+**過去の更新（2025-12-10）**:
 - **Devcontainer環境構築**: VS Code Dev Container による開発環境を構築。Node.js 20.9.0（Bookwormベース）、FFmpeg、libvips-dev、libheif-dev をシステムインストール。Named Volume による `node_modules` 永続化でパフォーマンス最適化（npm install が10倍以上高速化）。
 - `.devcontainer/Dockerfile`、`.devcontainer/docker-compose.yml`、`.devcontainer/devcontainer.json` を新規作成。
 - `docs/dev/devcontainer-guide.md` を新規作成（セットアップ手順、技術仕様、トラブルシューティング、将来の拡張方法を記載）。
-- `docs/index.md` を更新（新規ドキュメントへのリンク追加、最終更新日更新）。
