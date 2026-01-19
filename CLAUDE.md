@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Converter WebP/WebM is a Next.js 16 App Router application for batch WebP (image) and WebM (video) conversion. Users upload images (JPG/JPEG/PNG/WEBP/AVIF/SVG/HEIC/HEIF/TIFF/BMP/GIF) and videos (MP4/MOV/MKV/AVI/WEBM/M4V) up to 25 files (max 20MB each), reorder them via drag-and-drop, and convert them to WebP/WebM format with sequential numbering. Single files download directly; multiple files are zipped server-side. Features a modern dark mode UI with component-based architecture and Toast notifications.
 
 **Tech Stack:**
-- Next.js 16.0.7 with App Router + TypeScript (strict mode)
+- Next.js 16.0.10 with App Router + TypeScript (strict mode)
 - React 19.2.1 with hooks-based components
 - Tailwind CSS for styling with dark mode support, `clsx` for conditional classes
 - `sortablejs` for drag-and-drop reordering
