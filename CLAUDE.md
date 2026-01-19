@@ -16,7 +16,7 @@ Converter WebP/WebM is a Next.js 16 App Router application for batch WebP (image
 - `jszip` for server-side ZIP generation
 - `sonner` for Toast notification system
 
-**Node.js Requirement:** 20.9+ (Next.js 16 requirement, specified in `package.json` engines)
+**Node.js Requirement:** 20.20+ (Next.js 16 requirement, specified in `package.json` engines)
 
 ## Development Commands
 
