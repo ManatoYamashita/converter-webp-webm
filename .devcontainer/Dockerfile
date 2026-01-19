@@ -1,4 +1,4 @@
-FROM node:20.9.0-bookworm
+FROM node:20.20.0-bookworm
 
 # ネイティブビルドツールとFFmpegのインストール
 RUN apt-get update && apt-get install -y \
