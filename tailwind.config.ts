@@ -55,7 +55,11 @@ const config: Config = {
       keyframes: {
         fadeInUp: {
           '0%': {
-            opacity: '0',
+            // Start from 0.01 instead of 0: Chrome does not count content painted at
+            // opacity 0 as contentful, and the compositor-driven fade does not trigger a
+            // new contentful paint, so FCP/LCP were never recorded (Lighthouse NO_FCP).
+            // 0.01 is visually indistinguishable from 0.
+            opacity: '0.01',
             transform: 'translateY(20px) scale(0.95)',
           },
           '100%': {
