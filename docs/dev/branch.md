@@ -106,7 +106,7 @@ git remote remove origin
 ## CI/CD と GitHub Actions
 - ランナー環境: `ubuntu-latest` / Node.js 20 / `npm ci` を使用。
 - `prod`/`main` を除く開発ブランチへの push で実行（例: `feature/**`, `fix/**`, `chore/**` など）: Lint (`npm run lint`) → 型チェック（`npx tsc --noEmit`）→ Build（`npm run build`）。すべて成功すると `origin/prod` との差分サマリーとチェック結果を本文に含む `prod` 向けPRを自動生成または更新する。
-- 自動PR作成はリポジトリで「Actions による PR 作成を許可」もしくは `PR_CREATION_TOKEN`（`pull_request` 作成権限を持つ PAT）を `secrets` に設定している場合のみ動作する。許可されていない場合は lint/typecheck/build のみ実行され、PRは作成されない。
+- 自動PR作成は、`secrets` に `PR_CREATION_TOKEN`（`pull_request` 作成権限を持つ PAT）があればそれを使い、無ければ Actions の標準トークン（`GITHUB_TOKEN`）で行う。標準トークンで作るには、リポジトリ設定の「Allow GitHub Actions to create and approve pull requests」が有効である必要がある（2026-11-23 に有効化）。標準トークンで作った PR では `pull_request` で動くワークフローが走らないため、PR 時に検査を足すときは PAT を登録すること。
 - 自動生成PRタイトル: `chore: sync <branch> to prod`。本文にソース/ベースブランチ、先行コミット数、Lint/Typecheck/Build結果、`git diff --stat origin/prod...HEAD` の概要を記載。
 - `prod` 更新時に実行: 本番ビルド（`npm run build`）→ サーバー起動（`next start --hostname 0.0.0.0 --port 3000`）→ `wait-on` で待機 → `@lhci/cli` で Lighthouse 推奨プリセットを1回実行し、`.lighthouseci` をアーティファクトとして保存。
 - PRマージ前にCI結果と自動PRのサマリーを必ず確認し、Lighthouseレポートも合わせてレビューすること。
