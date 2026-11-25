@@ -482,7 +482,7 @@ export default function HomePage() {
             type="application/ld+json"
             dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
           />
-          <div className="flex flex-col items-center text-center opacity-0 animate-fade-in-up-delay-1">
+          <div className="flex flex-col items-center text-center opacity-[0.01] animate-fade-in-up-delay-1">
             <AppHeader onHelpClick={() => setIsHelpModalOpen(true)} isCompact={hasItems} />
           </div>
 
@@ -560,7 +560,7 @@ export default function HomePage() {
 
             {isConverting && <ProgressPanel progress={conversionProgress} />}
 
-            <section className="space-y-4 opacity-0 animate-fade-in-up-delay-3">
+            <section className="space-y-4 opacity-[0.01] animate-fade-in-up-delay-3">
               <div className="flex items-center justify-between">
                 <div className="flex flex-col items-start gap-1 sm:flex-row sm:items-center sm:gap-3">
                   <span className="text-sm font-semibold text-slate-600 dark:text-dark-text-secondary">
@@ -595,7 +595,7 @@ export default function HomePage() {
               />
             </section>
 
-            <footer className="text-center text-xs font-medium text-slate-400 dark:text-dark-text-muted opacity-0 animate-fade-in-up-delay-3">
+            <footer className="text-center text-xs font-medium text-slate-400 dark:text-dark-text-muted opacity-[0.01] animate-fade-in-up-delay-3">
               © Converter WebP/WebM – Smart media conversion /{" "}
               <Link href="https://manapuraza.com" className="text-brand-500 dark:text-brand-400 hover:underline">
                 ManatoYamashita
